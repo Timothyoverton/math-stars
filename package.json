@@ -1,0 +1,17 @@
+{
+  "name": "math-stars",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "oxlint",
+    "deploy": "npm run build && gh-pages -d dist",
+    "party:dev": "partykit dev",
+    "party:deploy": "partykit deploy",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
+  }
+}
