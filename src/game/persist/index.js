@@ -11,6 +11,7 @@ const K = {
   profile: 'math-stars:v1:profile',
   progress: 'math-stars:v1:progress',
   history: 'math-stars:v1:history',
+  collection: 'math-stars:v1:collection',
 }
 
 const HISTORY_MAX = 200
@@ -88,6 +89,7 @@ export const Store = {
 
     return {
       progress: progress[result.skillId],
+      prevStars: prev.stars,
       setStars: starsForAccuracy(result.total ? result.correct / result.total : 0),
       newBest: result.score > prev.best,
     }
@@ -103,10 +105,34 @@ export const Store = {
     return Object.values(progress).reduce((sum, p) => sum + (p.stars || 0), 0)
   },
 
+  async getCollection() {
+    return (await adapter.read(K.collection)) || {}
+  },
+
+  // Drop one gem into the collection bag. Returns the updated entry plus
+  // whether this is the first time this exact gem has been earned.
+  async awardGem(gemId, at = Date.now()) {
+    const collection = (await adapter.read(K.collection)) || {}
+    const prev = collection[gemId]
+    collection[gemId] = {
+      count: (prev?.count || 0) + 1,
+      firstAt: prev?.firstAt || at,
+      lastAt: at,
+    }
+    await adapter.write(K.collection, collection)
+    return { ...collection[gemId], isNew: !prev }
+  },
+
+  async getGemCount() {
+    const collection = (await adapter.read(K.collection)) || {}
+    return Object.values(collection).reduce((sum, g) => sum + (g.count || 0), 0)
+  },
+
   async reset() {
     await adapter.remove(K.profile)
     await adapter.remove(K.progress)
     await adapter.remove(K.history)
+    await adapter.remove(K.collection)
   },
 }
 

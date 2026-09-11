@@ -6,6 +6,7 @@ import Countdown from './components/Countdown.jsx'
 import Match from './components/Match.jsx'
 import Result from './components/Result.jsx'
 import Progress from './components/Progress.jsx'
+import Collection from './components/Collection.jsx'
 import { usePhase, useRunId } from './game/store.js'
 import { Store } from './game/persist/index.js'
 import { session } from './game/session.js'
@@ -17,7 +18,7 @@ bootstrapMultiplayer()
 export default function App() {
   const phase = usePhase()
   const runId = useRunId()
-  const [showProgress, setShowProgress] = useState(false)
+  const [overlay, setOverlay] = useState(null) // null | 'progress' | 'collection'
   useMultiplayerCoordinator()
 
   useEffect(() => {
@@ -32,11 +33,18 @@ export default function App() {
         <span className="star">⭐</span> MATH STARS
       </div>
 
-      {showProgress ? (
-        <Progress onBack={() => setShowProgress(false)} />
+      {overlay === 'progress' ? (
+        <Progress onBack={() => setOverlay(null)} />
+      ) : overlay === 'collection' ? (
+        <Collection onBack={() => setOverlay(null)} />
       ) : (
         <>
-          {phase === 'menu' && <Menu onOpenProgress={() => setShowProgress(true)} />}
+          {phase === 'menu' && (
+            <Menu
+              onOpenProgress={() => setOverlay('progress')}
+              onOpenCollection={() => setOverlay('collection')}
+            />
+          )}
           {phase === 'practice' && <Practice key={runId} />}
           {phase === 'lobby' && <Lobby />}
           {phase === 'countdown' && <Countdown key={runId} />}

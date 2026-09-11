@@ -1,7 +1,8 @@
 # Math Stars — roadmap & ideas
 
 The brief's milestones 1–4 are built (solo practice, Khan-aligned curriculum,
-Star Race over PartyKit, Playwright). What's next, roughly in order:
+Star Race over PartyKit, Playwright), plus the gem collection reward loop
+below. What's next, roughly in order:
 
 ## Milestone 5 — real persistence (from the brief)
 
@@ -24,11 +25,10 @@ a solo player can race without a second device:
 
 This also de-risks the multiplayer demo when no relay is deployed.
 
-## Gem collection — the reward loop
+## Gem collection — the reward loop ✅ built
 
 Mathletics' hook: finish a test above a pass mark and a monkey scampers off with
-your acorns into a stash. Math Stars' version: **you collect gemstones**, and a
-little critter delivers each one into your **collection bag**.
+your acorns into a stash. Math Stars' version: **you collect gemstones**.
 
 Stars and gems coexist and mean different things — **stars** are the skill
 rating (rolling mastery, the 60/80/95 % thresholds in `scoring.js`); **gems**
@@ -37,10 +37,11 @@ gems are additive.
 
 ### Earning
 
-A gem drops on the result screen, tier set by how the set went — reuse the
-thresholds already in `scoring.js` (`starsForAccuracy`, mastery, best):
+A gem drops on the result screen. `src/game/rewards.js`'s `gemFor()` is a pure
+function from how the set went to a tier — reusing the thresholds already in
+`scoring.js`:
 
-| Tier | Gem (examples) | Earned by |
+| Tier | Gem (12 total, `src/game/gems.js`) | Earned by |
 | --- | --- | --- |
 | Common | tiger's eye, quartz, agate | finish any set (≥ 60 %, 1 star) |
 | Uncommon | amethyst, citrine, jade | 2-star set (≥ 80 %) |
@@ -48,41 +49,34 @@ thresholds already in `scoring.js` (`starsForAccuracy`, mastery, best):
 | Epic | diamond | a perfect 20/20, **or** first time a skill hits full mastery |
 | Special | star ruby, black opal | a Star Race win · a 10-streak · a new best score |
 
-One gem per finished set (plus any special), so the bag fills at a sane rate.
-A dud set (< 60 %) earns nothing — that's the pass mark, same as the acorn idea.
+One gem per finished set, highest qualifying tier wins, the specific gem within
+a tier is picked at random. A dud set (< 60 %) earns nothing.
 
-### The critter
+### Where it landed
 
-At the result screen a small animated character (monkey, magpie, a little
-mining mole — pick one) runs in, picks up the gem, and drops it in the bag with
-a clink. Pure CSS/SVG keyframes, skippable, respects `prefers-reduced-motion`.
-This is where the "celebration on a 3-star set" polish item below lands.
+- `Store.recordActivity()` now also returns `prevStars`, so "first full
+  mastery" is `prevStars < 3 && progress.stars === 3`. `Store.awardGem(id)` /
+  `getCollection()` / `getGemCount()` round out the facade — new versioned key
+  `math-stars:v1:collection`.
+- `<Practice>` / `<Match>` call `gemFor()` right after recording the activity,
+  award the gem, and pass it through as `result.gem`.
+- `<Result>` shows the drop (a CSS gem-shape, name, tier, "New!" the first
+  time) with a pop-in animation that respects `prefers-reduced-motion`.
+- `<Collection>` — off the menu, next to "see progress" — a grid of gem slots
+  grouped by tier, filled ones in colour with a ×count, unearned ones grey
+  silhouettes. Tap one for its name/tier/count/first-earned date.
+- Star Race: both players compute and award their own gem client-side off
+  their own result — the relay still never sees a score.
+- Tests: `tests/rewards.spec.js` — tier logic, `Store.awardGem` round-tripping,
+  and a full DOM playthrough asserting the drop on the result screen.
 
-### Collection bag
+### Deferred
 
-A new screen off the menu (next to "see progress"): a grid of gem slots, filled
-ones in colour with a count badge, unearned ones as grey silhouettes so there's
-something to chase. Tap a gem → its name, how you earned it, when, and how many
-you have. A headline count ("23 gems · 4 of 12 kinds found").
-
-### Where it plugs in
-
-- Extend the `Store` facade: `getCollection()`, and award inside
-  `recordActivity()` (it already computes stars / newBest / mastery). New
-  versioned key `math-stars:v1:collection` — `{ [gemId]: { count, firstAt, lastAt } }`.
-- `src/game/gems.js` — the gem list (id, name, tier, colour, `svg`), mirroring
-  how `skills.js` works: data only, one object per gem.
-- `src/game/rewards.js` — pure function `gemFor(result) -> gemId | null`, unit
-  tested like `scoring.js`.
-- `<Result>` shows the drop; `<Collection>` is the new screen.
-- Star Race: the winner earns their gem client-side on the result screen (the
-  relay stays dumb — it never sees a score).
-
-### Later still
-
-Spend gems? A cosmetic shop (avatar hats, question-card themes) keeps it
-non-pay-to-win and gives the currency a sink. Out of scope until the collection
-itself is proven fun.
+- **The critter** — a small animated character running the gem into the bag.
+  Shipped instead as a plain pop-in card; worth revisiting once the collection
+  itself has been played with.
+- **A cosmetic shop** — spend gems on avatar hats / question-card themes. Out
+  of scope until the collection is proven fun.
 
 ## Curriculum depth (Khan Academy K-8 scope/sequence)
 

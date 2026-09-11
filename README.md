@@ -24,7 +24,11 @@ Milestones 1–4 built:
 - **Star Race** — host gets a join code + QR + `?join=` link, synced 3-2-1-GO,
   both players get the identical 20 questions from a server seed, live opponent
   HUD, winner (most correct, faster time breaks a tie), rematch.
-- **Playwright** — `practice.spec.js` (green) and `match.spec.js` (needs a relay).
+- **Gem collection** — finish a set at or above the pass mark and earn a
+  gemstone (common → special, 12 kinds), shown on the result screen and kept in
+  a collection bag off the menu. See `src/game/gems.js` / `rewards.js`.
+- **Playwright** — `practice.spec.js`, `rewards.spec.js` (green) and
+  `match.spec.js` (needs a relay).
 
 Next: milestone 5 (real backend), and a "Play the Robot 🤖" bot opponent — see
 the roadmap.

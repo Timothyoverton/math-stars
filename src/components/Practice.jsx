@@ -6,6 +6,8 @@ import { getSkill } from '../game/skills.js'
 import { useQuiz } from '../game/useQuiz.js'
 import { Store } from '../game/persist/index.js'
 import { getState, finishActivity, toMenu } from '../game/store.js'
+import { gemFor } from '../game/rewards.js'
+import { getGem } from '../game/gems.js'
 
 export default function Practice() {
   const skillId = getState().skillId
@@ -26,6 +28,17 @@ export default function Practice() {
         timeMs: r.timeMs,
         mode: 'solo',
       })
+
+      const gemId = gemFor({
+        stars: rolled.setStars,
+        perfect: r.correct === r.total,
+        firstFullMastery: rolled.prevStars < 3 && rolled.progress.stars === 3,
+        raceWin: false,
+        tenStreak: r.bestStreak >= 10,
+        newBest: rolled.newBest,
+      })
+      const gem = gemId ? { ...getGem(gemId), ...(await Store.awardGem(gemId)) } : null
+
       finishActivity({
         ...r,
         stars: rolled.setStars,
@@ -33,6 +46,7 @@ export default function Practice() {
         best: rolled.progress.best,
         mastery: rolled.progress.mastery,
         skillLabel: skill?.label || r.skillId,
+        gem,
       })
     },
     [skill],

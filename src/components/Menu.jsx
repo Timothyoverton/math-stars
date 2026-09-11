@@ -22,12 +22,13 @@ function SkillButton({ skill, sub, stars, selected, onSelect }) {
   )
 }
 
-export default function Menu({ onOpenProgress }) {
+export default function Menu({ onOpenProgress, onOpenCollection }) {
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState('🦊')
   const [skillId, setSkillId] = useState(SKILLS[0].id)
   const [progress, setProgress] = useState({})
   const [totalStars, setTotalStars] = useState(0)
+  const [totalGems, setTotalGems] = useState(0)
 
   useEffect(() => {
     Store.getProfile().then((p) => {
@@ -42,6 +43,7 @@ export default function Menu({ onOpenProgress }) {
   function refreshProgress() {
     Store.getProgress().then(setProgress)
     Store.getStars().then(setTotalStars)
+    Store.getGemCount().then(setTotalGems)
   }
 
   async function persistProfile(patch) {
@@ -64,9 +66,13 @@ export default function Menu({ onOpenProgress }) {
     <div className="panel">
       <h1>Hi{name ? `, ${name}` : ''}! Ready to practise?</h1>
       <p className="muted">
-        {totalStars} star{totalStars === 1 ? '' : 's'} earned ·{' '}
+        {totalStars} star{totalStars === 1 ? '' : 's'} ·{' '}
         <button className="link" onClick={onOpenProgress}>
           see progress
+        </button>{' '}
+        · 💎 {totalGems} gem{totalGems === 1 ? '' : 's'} ·{' '}
+        <button className="link" onClick={onOpenCollection}>
+          see collection
         </button>
       </p>
 

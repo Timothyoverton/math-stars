@@ -17,6 +17,7 @@ export function useQuiz({ questions, mode, seed, skillId, onProgress, onFinish }
   const [score, setScore] = useState(0)
   const [streak, setStreak] = useState(0)
   const [correct, setCorrect] = useState(0)
+  const bestStreakRef = useRef(0)
   const [lastAnswer, setLastAnswer] = useState(null) // { correct, value, points } | null
   const [finished, setFinished] = useState(false)
   const [result, setResult] = useState(null)
@@ -43,6 +44,7 @@ export function useQuiz({ questions, mode, seed, skillId, onProgress, onFinish }
       const timeMs = now - questionShownAt.current
       const ok = isCorrect(value, q.answer)
       const nextStreak = ok ? streak + 1 : 0
+      if (nextStreak > bestStreakRef.current) bestStreakRef.current = nextStreak
       const gained = pointsFor({ correct: ok, timeMs, streakAfter: nextStreak })
 
       const nextScore = score + gained
@@ -77,6 +79,7 @@ export function useQuiz({ questions, mode, seed, skillId, onProgress, onFinish }
           score: nextScore,
           timeMs: timeMsTotal,
           stars: starsForAccuracy(accuracy),
+          bestStreak: bestStreakRef.current,
         }
         setFinished(true)
         setResult(r)

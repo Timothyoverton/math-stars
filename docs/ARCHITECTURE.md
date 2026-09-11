@@ -40,6 +40,24 @@ menu ─▶ practice ─▶ result                          solo
   streak resets. Stars at 60 / 80 / 95 % accuracy — same thresholds for a set's
   stars and for rolling mastery.
 
+## Gem collection
+
+The reward loop on top of stars — collectible, not a second scoring system.
+- [`gems.js`](../src/game/gems.js) — the gem list, data only: 12 gems across
+  five tiers (common/uncommon/rare/epic/special).
+- [`rewards.js`](../src/game/rewards.js) — `gemFor(input, pick?)`, a pure
+  function from how a set went (`stars`, `perfect`, `firstFullMastery`,
+  `raceWin`, `tenStreak`, `newBest`) to a gem id or `null`. No storage, no
+  React — `pick` is injectable so tests can make the tier-internal choice
+  deterministic.
+- `<Practice>` / `<Match>` call `gemFor()` right after `Store.recordActivity()`
+  (which now also returns `prevStars`, so "first full mastery" is a one-line
+  check), then `Store.awardGem(id)` and pass the result through `finishActivity`
+  / `finishMatch` as `result.gem`. `<Result>` shows the drop; `<Collection>`
+  (off the menu, next to "see progress") is the gem-bag screen.
+- Star Race: both players compute their own gem client-side off their own
+  `self` result — the relay still never sees a score.
+
 ## Star Race (PartyKit)
 
 The server ([`party/server.ts`](../party/server.ts)) is a **dumb relay** — max
@@ -65,17 +83,22 @@ together. Idle rooms close after 15 min.
 Everything goes through the async **`Store` facade**
 ([`src/game/persist/`](../src/game/persist/)). `sessionAdapter` (sessionStorage)
 now; `memoryAdapter` for tests (`VITE_STORE=memory`); `remoteAdapter` later.
-Keys are `math-stars:v1:*`. See [`persist/README.md`](../src/game/persist/README.md).
+Keys are `math-stars:v1:*` — profile, progress, history, and (new) collection.
+See [`persist/README.md`](../src/game/persist/README.md).
 
 ## Tests
 
 Playwright, headed on `:0` by default (`PW_HEADLESS=1` to skip the display).
 `practice.spec.js` runs a solo set through the dev globals and asserts score,
-stars, streak reset, generator sanity across every skill, seed determinism, and
-`sessionStorage` progress. `match.spec.js` drives two contexts through the relay
-(shared questions, synced start, winner, rematch) and **skips itself** if no
-relay is reachable — run `npm run party:dev` in another terminal, or point
-`PARTYKIT_HOST` at the deployed relay.
+stars, streak reset, generator sanity across every skill (including that no
+multiple-choice question has duplicate choices), seed determinism, and
+`sessionStorage` progress. `rewards.spec.js` checks `gemFor()`'s tier logic
+directly, `Store.awardGem()`/`getCollection()` round-tripping, and a full DOM
+playthrough that asserts the gem drop on the result screen and in storage.
+`match.spec.js` drives two contexts through the relay (shared questions, synced
+start, winner, rematch) and **skips itself** if no relay is reachable — run
+`npm run party:dev` in another terminal, or point `PARTYKIT_HOST` at the
+deployed relay.
 
 ## Dev globals (dev build only)
 

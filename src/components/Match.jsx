@@ -9,6 +9,8 @@ import * as net from '../game/net.js'
 import { Store } from '../game/persist/index.js'
 import { finishMatch } from '../game/store.js'
 import { leaveRace } from '../game/mp.js'
+import { gemFor } from '../game/rewards.js'
+import { getGem } from '../game/gems.js'
 
 function decideOutcome(self, opp) {
   if (!opp) return 'forfeit'
@@ -37,7 +39,7 @@ export default function Match() {
     if (opp === undefined) return // opponent still going
     settledRef.current = true
 
-    await Store.recordActivity({
+    const rolled = await Store.recordActivity({
       skillId,
       total: self.total,
       correct: self.correct,
@@ -46,13 +48,25 @@ export default function Match() {
       mode: 'race',
     })
 
+    const outcome = decideOutcome(self, opp)
+    const gemId = gemFor({
+      stars: rolled.setStars,
+      perfect: self.correct === self.total,
+      firstFullMastery: rolled.prevStars < 3 && rolled.progress.stars === 3,
+      raceWin: outcome === 'win' || outcome === 'forfeit',
+      tenStreak: self.bestStreak >= 10,
+      newBest: rolled.newBest,
+    })
+    const gem = gemId ? { ...getGem(gemId), ...(await Store.awardGem(gemId)) } : null
+
     finishMatch({
       mode: 'race',
       skillId,
       skillLabel: skill?.label || skillId,
       self,
       opp: opp || null,
-      outcome: decideOutcome(self, opp),
+      outcome,
+      gem,
     })
   }, [skillId, skill])
 

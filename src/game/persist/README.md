@@ -31,7 +31,9 @@ Want progress to survive a reload before the real backend lands? Change
 
 ## Keys
 
-Versioned: `math-stars:v1:profile`, `math-stars:v1:progress`, `math-stars:v1:history`.
+Versioned: `math-stars:v1:profile`, `math-stars:v1:progress`, `math-stars:v1:history`,
+`math-stars:v1:collection` (the gem bag — `{ [gemId]: { count, firstAt, lastAt } }`,
+awarded by `Store.awardGem()`; see `src/game/gems.js` and `src/game/rewards.js`).
 A schema change bumps `v1` and migrates or discards cleanly.
 
 ## Writing `remoteAdapter.js`

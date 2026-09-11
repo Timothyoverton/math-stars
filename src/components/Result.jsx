@@ -1,6 +1,7 @@
 import { useResult, startPractice, toMenu } from '../game/store.js'
 import * as net from '../game/net.js'
 import { leaveRace } from '../game/mp.js'
+import { TIER_LABEL } from '../game/gems.js'
 
 function fmtTime(ms) {
   const s = Math.round(ms / 1000)
@@ -13,6 +14,28 @@ function Stars({ n }) {
     <div className="result-stars">
       {'★'.repeat(n)}
       <span style={{ color: 'var(--line)' }}>{'★'.repeat(3 - n)}</span>
+    </div>
+  )
+}
+
+function GemDrop({ gem }) {
+  if (!gem) return null
+  return (
+    <div className="gem-drop">
+      <span
+        className="gem-stone"
+        style={{ '--g1': gem.colors[0], '--g2': gem.colors[1] }}
+        role="img"
+        aria-label={gem.name}
+      />
+      <div>
+        <b>
+          {gem.name} {gem.isNew && <span className="gem-new">New!</span>}
+        </b>
+        <span className="muted">
+          {TIER_LABEL[gem.tier]} gem · you have {gem.count}
+        </span>
+      </div>
     </div>
   )
 }
@@ -35,6 +58,7 @@ function SoloResult({ r }) {
 
       <Stars n={r.stars} />
       {r.newBest && <span className="badge-best">★ New best score</span>}
+      <GemDrop gem={r.gem} />
 
       <div className="stat-grid">
         <div className="stat">
@@ -87,6 +111,7 @@ function RaceResult({ r }) {
       <p className="muted" style={{ marginTop: 0 }}>
         {r.skillLabel} · Star Race
       </p>
+      <GemDrop gem={r.gem} />
 
       <div className="stat-grid">
         <div className="stat">
