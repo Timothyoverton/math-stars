@@ -5,6 +5,7 @@ import { Store } from '../game/persist/index.js'
 import { session } from '../game/session.js'
 import { startPractice, startWarmup } from '../game/store.js'
 import { hostRace, playBot } from '../game/mp.js'
+import { primeAudio } from '../game/celebrate.js'
 
 const AVATARS = ['🦊', '🐼', '🐸', '🦉', '🐙', '🦄', '🐝', '🐬']
 
@@ -166,11 +167,24 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
       <div className="stack" style={{ marginTop: 18 }}>
         <button
           className="btn big"
-          onClick={() => (progress[skillId] ? startPractice(skillId) : startWarmup(skillId))}
+          onClick={() => {
+            // Priming here, synchronously inside the click, is what actually
+            // unlocks Web Audio — a useEffect on the result screen later is
+            // too late in Safari. See celebrate.js.
+            primeAudio()
+            if (progress[skillId]) startPractice(skillId)
+            else startWarmup(skillId)
+          }}
         >
           Practise 20 questions
         </button>
-        <button className="btn secondary" onClick={() => hostRace(skillId)}>
+        <button
+          className="btn secondary"
+          onClick={() => {
+            primeAudio()
+            hostRace(skillId)
+          }}
+        >
           🏁 Race a friend
         </button>
       </div>
@@ -180,7 +194,14 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
       </p>
       <div className="row">
         {BOT_LEVELS.map((l) => (
-          <button key={l.id} className="btn secondary" onClick={() => playBot(skillId, l.id)}>
+          <button
+            key={l.id}
+            className="btn secondary"
+            onClick={() => {
+              primeAudio()
+              playBot(skillId, l.id)
+            }}
+          >
             {l.avatar} {l.label.replace(' robot', '')}
           </button>
         ))}

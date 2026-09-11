@@ -34,6 +34,20 @@ function intChoices(rng, answer, spread = 5) {
   return rng.shuffle([answer, ...nearbyInts(rng, answer, 3, spread)]).map(String)
 }
 
+// Distractors a clean 100 apart from the correct ballpark, never negative —
+// for the estimating skill below, where "close" should mean "wrong century",
+// not "off by a few".
+function estimateChoices(rng, correct, step = 100) {
+  const pool = []
+  for (let m = -3; m <= 3; m++) {
+    if (m === 0) continue
+    const v = correct + m * step
+    if (v >= 0) pool.push(v)
+  }
+  const picked = rng.shuffle(pool).slice(0, 3)
+  return rng.shuffle([correct, ...picked]).map(String)
+}
+
 function gcd(a, b) {
   a = Math.abs(a)
   b = Math.abs(b)
@@ -72,6 +86,37 @@ function signed(n) {
 // ---- base skills ---------------------------------------------------
 
 export const BASE_SKILLS = [
+  // --- Grade 2: ballpark estimating — a gentler entry point than typing an
+  // exact sum. Multiple choice, and "correct" means closest to the true
+  // answer, not the answer itself: the skill being practised is judging
+  // roughly where a total lands, not arithmetic precision. ---
+  {
+    id: 'estimate',
+    label: 'Estimating: which is closest?',
+    strand: 'Estimating',
+    grade: 2,
+    generate(rng) {
+      let a, b, exact, op
+      if (rng.next() < 0.5) {
+        a = rng.int(20, 899)
+        b = rng.int(20, 999 - a)
+        exact = a + b
+        op = '+'
+      } else {
+        a = rng.int(100, 999)
+        b = rng.int(10, a - 1)
+        exact = a - b
+        op = '−'
+      }
+      const correct = Math.round(exact / 100) * 100
+      return {
+        prompt: `About how much is ${a} ${op} ${b}?`,
+        answer: correct,
+        choices: estimateChoices(rng, correct),
+      }
+    },
+  },
+
   // --- Grade 3: addition, subtraction, times tables ---
   {
     id: 'add',

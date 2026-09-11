@@ -4,7 +4,7 @@ import MathExpr from './MathExpr.jsx'
 import Hud from './Hud.jsx'
 import { buildQuestionSet } from '../game/questions.js'
 import { getSkill } from '../game/skills.js'
-import { useQuiz } from '../game/useQuiz.js'
+import { useQuiz, useSkipFlashOnEnter } from '../game/useQuiz.js'
 import * as net from '../game/net.js'
 import { runBot } from '../game/bot.js'
 import { Store } from '../game/persist/index.js'
@@ -124,6 +124,7 @@ export default function Match() {
   }, [seed, skillId, questions])
 
   const quiz = useQuiz({ questions, mode: 'race', seed, skillId, onProgress, onFinish })
+  useSkipFlashOnEnter(quiz)
 
   if (waiting || quiz.finished) {
     return (
@@ -169,7 +170,10 @@ export default function Match() {
       >
         {quiz.lastAnswer ? (
           quiz.lastAnswer.correct ? (
-            `Correct! +${quiz.lastAnswer.points}`
+            <>
+              Correct! +{quiz.lastAnswer.points} ·{' '}
+              <MathExpr text={String(quiz.lastAnswer.expected)} />
+            </>
           ) : (
             <>
               Answer: <MathExpr text={String(quiz.lastAnswer.expected)} />

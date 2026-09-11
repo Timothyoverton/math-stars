@@ -3,7 +3,7 @@ import Question from './Question.jsx'
 import MathExpr from './MathExpr.jsx'
 import { buildQuestionSet, randomSeed } from '../game/questions.js'
 import { getSkill } from '../game/skills.js'
-import { useQuiz } from '../game/useQuiz.js'
+import { useQuiz, useSkipFlashOnEnter } from '../game/useQuiz.js'
 import { Store } from '../game/persist/index.js'
 import { getState, finishActivity, toMenu } from '../game/store.js'
 import { gemFor } from '../game/rewards.js'
@@ -53,6 +53,7 @@ export default function Practice() {
   )
 
   const quiz = useQuiz({ questions, mode: 'solo', seed, skillId, onFinish })
+  useSkipFlashOnEnter(quiz)
 
   if (quiz.finished) {
     return (
@@ -88,7 +89,10 @@ export default function Practice() {
       >
         {quiz.lastAnswer ? (
           quiz.lastAnswer.correct ? (
-            `Correct! +${quiz.lastAnswer.points}`
+            <>
+              Correct! +{quiz.lastAnswer.points} ·{' '}
+              <MathExpr text={String(quiz.lastAnswer.expected)} />
+            </>
           ) : (
             <>
               Answer: <MathExpr text={String(quiz.lastAnswer.expected)} />

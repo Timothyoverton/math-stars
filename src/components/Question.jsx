@@ -25,15 +25,20 @@ export default function Question({ question, onAnswer }) {
     })
   }
 
-  // physical keyboard support (handy on a laptop; the specs type here too)
+  // physical keyboard support (handy on a laptop; the specs type here too) —
+  // e.code is checked alongside e.key so a hardware numpad works even where
+  // e.key reports something unexpected (NumLock state, some layouts); a
+  // typical numpad has no ± key, so its "-" doubles as the sign toggle.
   useEffect(() => {
     if (question.choices) return
     function onKeyDown(e) {
-      if (e.key >= '0' && e.key <= '9') edit('digit', e.key)
-      else if (e.key === 'Backspace') edit('back')
-      else if (e.key === '.') edit('dot')
-      else if (e.key === '-') edit('sign')
-      else if (e.key === 'Enter') submit()
+      const numpadDigit = e.code.match(/^Numpad([0-9])$/)
+      if ((e.key >= '0' && e.key <= '9') || numpadDigit) {
+        edit('digit', numpadDigit ? numpadDigit[1] : e.key)
+      } else if (e.key === 'Backspace') edit('back')
+      else if (e.key === '.' || e.code === 'NumpadDecimal') edit('dot')
+      else if (e.key === '-' || e.code === 'NumpadSubtract') edit('sign')
+      else if (e.key === 'Enter' || e.code === 'NumpadEnter') submit()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)

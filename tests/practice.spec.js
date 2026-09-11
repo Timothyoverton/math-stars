@@ -95,6 +95,62 @@ test('every skill generates 20 questions whose own answer marks correct', async 
   }
 })
 
+test('answering with the physical numpad keys works, including on a negative-number skill', async ({
+  page,
+}) => {
+  await gotoApp(page)
+  await startPractice(page, 'add')
+
+  const q = await page.evaluate(() => {
+    const a = window.__session.activity
+    return { answer: String(a.currentQuestion.answer) }
+  })
+  for (const ch of q.answer) {
+    await page.keyboard.press(ch === '-' ? 'NumpadSubtract' : 'Numpad' + ch)
+  }
+  await page.keyboard.press('NumpadEnter')
+
+  await page.waitForFunction(() => window.__session.activity.index === 1)
+  expect(await page.evaluate(() => window.__session.activity.correct)).toBe(1)
+
+  // a skill whose answers can be negative — NumpadSubtract also doubles as
+  // the sign key, so this exercises both roles in one skill
+  await startPractice(page, 'negadd')
+  const q2 = await page.evaluate(() => {
+    const a = window.__session.activity
+    return { answer: String(a.currentQuestion.answer) }
+  })
+  for (const ch of q2.answer) {
+    await page.keyboard.press(ch === '-' ? 'NumpadSubtract' : 'Numpad' + ch)
+  }
+  await page.keyboard.press('NumpadEnter')
+  await page.waitForFunction(() => window.__session.activity.index === 1)
+  expect(await page.evaluate(() => window.__session.activity.correct)).toBe(1)
+})
+
+test('Enter skips the answer flash straight to the next question', async ({ page }) => {
+  await gotoApp(page)
+  await startPractice(page, 'add')
+
+  const q = await page.evaluate(() => {
+    const a = window.__session.activity
+    return { answer: String(a.currentQuestion.answer) }
+  })
+  for (const ch of q.answer) {
+    await page.getByRole('button', { name: ch, exact: true }).first().click()
+  }
+  await page.getByRole('button', { name: 'Enter', exact: true }).click()
+  // don't wait on the engine here — that now waits out the full flash too
+  // (see helpers.js). The flash is showing right now; pressing Enter should
+  // jump straight to Q2 well under the ~900ms it'd otherwise hold for.
+  await expect(page.getByText('Q1 / 20')).toBeVisible()
+
+  const start = Date.now()
+  await page.keyboard.press('Enter')
+  await expect(page.getByText('Q2 / 20')).toBeVisible({ timeout: 700 })
+  expect(Date.now() - start).toBeLessThan(700)
+})
+
 test('the same seed builds the same questions', async ({ page }) => {
   await gotoApp(page)
   const a = await page.evaluate(async () => {

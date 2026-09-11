@@ -18,6 +18,9 @@ test('a never-played skill opens with a 5-question warm-up that does not touch p
 }) => {
   await resetAndReload(page)
 
+  // Division facts is a Grade 3 skill; only the lowest grade (2) is open by
+  // default in the picker, so its section needs expanding first.
+  await page.getByRole('button', { name: /Grade 3/ }).click()
   await page.getByRole('button', { name: /Division facts/ }).click()
   await page.getByRole('button', { name: 'Practise 20 questions' }).click()
 
@@ -59,6 +62,7 @@ test('a skill with existing progress skips the warm-up on its next practice', as
   await page.reload()
   await page.waitForFunction(() => window.__store && window.__session)
 
+  await page.getByRole('button', { name: /Grade 3/ }).click()
   await page.getByRole('button', { name: /Division facts/ }).click()
   await page.getByRole('button', { name: 'Practise 20 questions' }).click()
 

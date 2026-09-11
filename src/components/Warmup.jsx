@@ -3,7 +3,7 @@ import Question from './Question.jsx'
 import MathExpr from './MathExpr.jsx'
 import { buildQuestionSet, randomSeed } from '../game/questions.js'
 import { getSkill } from '../game/skills.js'
-import { useQuiz } from '../game/useQuiz.js'
+import { useQuiz, useSkipFlashOnEnter } from '../game/useQuiz.js'
 import { getState, startPractice } from '../game/store.js'
 
 export const WARMUP_COUNT = 5
@@ -23,6 +23,7 @@ export default function Warmup() {
   )
 
   const quiz = useQuiz({ questions, mode: 'solo', seed, skillId })
+  useSkipFlashOnEnter(quiz)
 
   // Deliberately not in useQuiz's own onFinish: that fires synchronously
   // inside the last answer's click handler, and calling startPractice()
@@ -62,7 +63,9 @@ export default function Warmup() {
       >
         {quiz.lastAnswer ? (
           quiz.lastAnswer.correct ? (
-            'Correct!'
+            <>
+              Correct! · <MathExpr text={String(quiz.lastAnswer.expected)} />
+            </>
           ) : (
             <>
               Answer: <MathExpr text={String(quiz.lastAnswer.expected)} />
