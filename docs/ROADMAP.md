@@ -30,6 +30,11 @@ Mathletics' hook: finish a test above a pass mark and a monkey scampers off with
 your acorns into a stash. Math Stars' version: **you collect gemstones**, and a
 little critter delivers each one into your **collection bag**.
 
+Stars and gems coexist and mean different things — **stars** are the skill
+rating (rolling mastery, the 60/80/95 % thresholds in `scoring.js`); **gems**
+are the collectible you earn per set. The project keeps the name *Math Stars*;
+gems are additive.
+
 ### Earning
 
 A gem drops on the result screen, tier set by how the set went — reuse the
