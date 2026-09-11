@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { SKILLS, SKILLS_BY_GRADE, MIXED_SKILLS } from '../game/skills.js'
 import { BOT_LEVELS } from '../game/bot.js'
 import { Store } from '../game/persist/index.js'
@@ -30,6 +30,24 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
   const [progress, setProgress] = useState({})
   const [totalStars, setTotalStars] = useState(0)
   const [totalGems, setTotalGems] = useState(0)
+
+  // grades sorted ascending — the picker used to lay out every one at once,
+  // which made for a very long scroll; only the first is open by default,
+  // rest are collapsed behind a tap.
+  const grades = useMemo(
+    () => Object.keys(SKILLS_BY_GRADE).map(Number).sort((a, b) => a - b),
+    [],
+  )
+  const [openGrades, setOpenGrades] = useState(() => new Set(grades.slice(0, 1)))
+
+  function toggleGrade(grade) {
+    setOpenGrades((prev) => {
+      const next = new Set(prev)
+      if (next.has(grade)) next.delete(grade)
+      else next.add(grade)
+      return next
+    })
+  }
 
   useEffect(() => {
     Store.getProfile().then((p) => {
@@ -100,26 +118,36 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
       </div>
 
       <label>Choose a skill</label>
-      {Object.keys(SKILLS_BY_GRADE)
-        .map(Number)
-        .sort((a, b) => a - b)
-        .map((grade) => (
+      {grades.map((grade) => {
+        const open = openGrades.has(grade)
+        return (
           <div key={grade}>
-            <p className="grade-head">Grade {grade}</p>
-            <div className="skills">
-              {SKILLS_BY_GRADE[grade].map((s) => (
-                <SkillButton
-                  key={s.id}
-                  skill={s}
-                  sub={s.strand}
-                  stars={progress[s.id]?.stars || 0}
-                  selected={s.id === skillId}
-                  onSelect={setSkillId}
-                />
-              ))}
-            </div>
+            <button
+              type="button"
+              className="grade-head grade-toggle"
+              aria-expanded={open}
+              onClick={() => toggleGrade(grade)}
+            >
+              Grade {grade}
+              <span className="grade-chevron">{open ? '▾' : '▸'}</span>
+            </button>
+            {open && (
+              <div className="skills">
+                {SKILLS_BY_GRADE[grade].map((s) => (
+                  <SkillButton
+                    key={s.id}
+                    skill={s}
+                    sub={s.strand}
+                    stars={progress[s.id]?.stars || 0}
+                    selected={s.id === skillId}
+                    onSelect={setSkillId}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        ))}
+        )
+      })}
 
       <p className="grade-head">Mixed review</p>
       <div className="skills">

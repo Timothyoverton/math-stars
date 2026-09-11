@@ -239,6 +239,24 @@ button {
   margin: 14px 0 6px;
 }
 
+/* collapsible grade sections in the skill picker — a <button> reusing
+   .grade-head's type, plus a chevron and a tap target */
+.grade-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: 0;
+  padding: 6px 2px;
+  text-align: left;
+}
+
+.grade-chevron {
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
 .skill-stars {
   color: var(--gold);
   letter-spacing: 1px;
