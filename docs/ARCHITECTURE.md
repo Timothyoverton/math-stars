@@ -108,14 +108,22 @@ already uses for its GO! → `beginMatch()` pause.
 
 ## Look — starry sky background
 
-The outer page (behind the white `.panel` card) is a CSS-only night sky, same
-"no image assets" rule as the gems and the share card: two tiled
-`radial-gradient` layers on `body::before` draw the stars (a dense dim tile
-and a sparser bright one, `twinkle` opacity animation, off under
-`prefers-reduced-motion`), and a fixed `.ground-gems` strip in `index.html`
-scatters a handful of the real gem-tier colours as small `.gem-stone`-style
-diamonds along the bottom edge, `pointer-events: none` throughout so it never
-intercepts a tap.
+Behind the white `.panel` card is an illustrated night sky —
+[`src/assets/starry-night.webp`](../src/assets/starry-night.webp), the one
+shipped image in the project (61 KB; Vite hashes it and rewrites the URL for
+the `/math-stars/` base). It sits on its own `.night` layer, a single empty
+`aria-hidden` div in `index.html`, rather than on `<body>`:
+`background-attachment: fixed` janks badly on mobile, and a `position: fixed`
+layer keeps the scene still while the page scrolls. `background-position` is
+`center bottom` so the gems along the ground stay in frame as the viewport
+grows taller, and `pointer-events: none` so it never intercepts a tap.
+
+This was first built as a CSS-drawn scene (tiled `radial-gradient` starfield,
+SVG facet-polygon gems) to hold to the same "no image assets" rule as the
+gems and the share card. It was replaced because the drawn version simply
+didn't look good enough. The rule still holds everywhere else — the
+collection's gems, the chime, and the share card are all still generated at
+runtime.
 
 ## Star Race (PartyKit)
 

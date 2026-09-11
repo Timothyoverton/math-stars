@@ -7,14 +7,10 @@
     <title>Math Stars</title>
   </head>
   <body>
-    <div class="ground-gems" aria-hidden="true">
-      <span class="ground-gem"></span>
-      <span class="ground-gem"></span>
-      <span class="ground-gem"></span>
-      <span class="ground-gem"></span>
-      <span class="ground-gem"></span>
-      <span class="ground-gem"></span>
-    </div>
+    <!-- Decorative night sky behind the app. Its own fixed layer rather than a
+         background on <body>: background-attachment: fixed janks badly on
+         mobile, and this keeps the scene still while the page scrolls. -->
+    <div class="night" aria-hidden="true"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

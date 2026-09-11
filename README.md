@@ -32,7 +32,8 @@ Milestones 1–4 built:
   `src/game/bot.js`.
 - **Polish** — a "get ready" warm-up (5 unscored questions) the first time you
   practise a skill, a synthesized chime + bigger celebration on a 3-star set /
-  new best / race win, and a downloadable share-card image for a race win.
+  new best / race win, a downloadable share-card image for a race win, and an
+  illustrated starry-night background with gems along the ground.
 - **Playwright** — `practice.spec.js`, `rewards.spec.js`, `bot.spec.js`,
   `polish.spec.js` (green) and `match.spec.js` (needs a relay).
 

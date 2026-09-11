@@ -140,3 +140,7 @@ test" that gates progress could build on those.
 - **Shareable result card** — `src/game/shareCard.js`'s `renderShareCard()`
   draws a `<canvas>` PNG (no asset) on demand; `<Result>`'s win screen offers
   "Make a share card" → a downloadable image.
+- **Night sky background** — an illustrated starry sky with gems along the
+  ground (`src/assets/starry-night.webp`, 61 KB) on a fixed `.night` layer.
+  Tried CSS-drawn first (tiled starfield + SVG facet gems) and it wasn't good
+  enough; see ARCHITECTURE's "Look".
