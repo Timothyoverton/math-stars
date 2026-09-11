@@ -144,3 +144,17 @@ test" that gates progress could build on those.
   ground (`src/assets/starry-night.webp`, 61 KB) on a fixed `.night` layer.
   Tried CSS-drawn first (tiled starfield + SVG facet gems) and it wasn't good
   enough; see ARCHITECTURE's "Look".
+
+## Future ideas (not started)
+
+- **Visual fraction manipulatives** — Tim (2026-09-11): for a fractions
+  question like `1/2`, show a real picture (a glass filled halfway with
+  water, a pizza with slices) instead of the plain `a/b` stack `MathExpr`
+  draws today. Needs an actual image-generation service — hand-drawn SVG
+  scenes have already come up short once this session (see the night-sky
+  background note above; same lesson applies here, only more so, since a
+  fraction picture has to be *legible* as "half full", not just pretty).
+  Likely shape: pre-generate a small fixed set of images per denominator
+  (halves, thirds, quarters, etc.) offline and ship them as assets, similar
+  to how the starry background is a shipped `.webp` rather than drawn live —
+  rather than calling a generation API from the client at runtime.
