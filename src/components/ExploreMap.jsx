@@ -3,6 +3,7 @@ import { EXPLORE_MAPS, mapNodes, nodeKey } from '../game/explore.js'
 import { Store } from '../game/persist/index.js'
 import { startExploreNode, toMenu, useExploreJustCompleted } from '../game/store.js'
 import { session } from '../game/session.js'
+import { GemDrop } from './Result.jsx'
 
 // The path view for the current map: one node per stop plus a trailing Map
 // Check, gated sequentially by the stored frontier. Always shows the map the
@@ -50,11 +51,13 @@ export default function ExploreMap() {
       </div>
 
       {justCompleted && (
-        <div className="feedback good" role="status" aria-live="polite">
-          {justCompleted.label} complete — {justCompleted.stars}⭐
-          {justCompleted.passed === false ? ' · try the check again anytime' : ''}
-          {justCompleted.gem ? ` · found a ${justCompleted.gem.name}!` : ''}
-        </div>
+        <>
+          <div className="feedback good" role="status" aria-live="polite">
+            {justCompleted.label} complete — {justCompleted.stars}⭐
+            {justCompleted.passed === false ? ' · try the check again anytime' : ''}
+          </div>
+          <GemDrop gem={justCompleted.gem} />
+        </>
       )}
 
       {allMapsDone && (

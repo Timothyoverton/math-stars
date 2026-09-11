@@ -22,7 +22,7 @@ function Stars({ n, celebrate }) {
   )
 }
 
-function GemDrop({ gem }) {
+export function GemDrop({ gem }) {
   if (!gem) return null
   return (
     <div className="gem-drop">
