@@ -1,0 +1,49 @@
+import { useEffect, useState } from 'react'
+import Menu from './components/Menu.jsx'
+import Practice from './components/Practice.jsx'
+import Lobby from './components/Lobby.jsx'
+import Countdown from './components/Countdown.jsx'
+import Match from './components/Match.jsx'
+import Result from './components/Result.jsx'
+import Progress from './components/Progress.jsx'
+import { usePhase, useRunId } from './game/store.js'
+import { Store } from './game/persist/index.js'
+import { session } from './game/session.js'
+import { bootstrapMultiplayer, useMultiplayerCoordinator } from './game/mp.js'
+
+// pick up a ?join=CODE link before React settles, so we land in the lobby
+bootstrapMultiplayer()
+
+export default function App() {
+  const phase = usePhase()
+  const runId = useRunId()
+  const [showProgress, setShowProgress] = useState(false)
+  useMultiplayerCoordinator()
+
+  useEffect(() => {
+    Store.getProfile().then((p) => {
+      session.profile = p
+    })
+  }, [])
+
+  return (
+    <div className="screen">
+      <div className="brandbar">
+        <span className="star">⭐</span> MATH STARS
+      </div>
+
+      {showProgress ? (
+        <Progress onBack={() => setShowProgress(false)} />
+      ) : (
+        <>
+          {phase === 'menu' && <Menu onOpenProgress={() => setShowProgress(true)} />}
+          {phase === 'practice' && <Practice key={runId} />}
+          {phase === 'lobby' && <Lobby />}
+          {phase === 'countdown' && <Countdown key={runId} />}
+          {phase === 'match' && <Match key={runId} />}
+          {phase === 'result' && <Result />}
+        </>
+      )}
+    </div>
+  )
+}
