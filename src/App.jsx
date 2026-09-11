@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Menu from './components/Menu.jsx'
+import Warmup from './components/Warmup.jsx'
 import Practice from './components/Practice.jsx'
 import Lobby from './components/Lobby.jsx'
 import Countdown from './components/Countdown.jsx'
@@ -45,6 +46,7 @@ export default function App() {
               onOpenCollection={() => setOverlay('collection')}
             />
           )}
+          {phase === 'warmup' && <Warmup key={runId} />}
           {phase === 'practice' && <Practice key={runId} />}
           {phase === 'lobby' && <Lobby />}
           {phase === 'countdown' && <Countdown key={runId} />}

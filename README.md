@@ -18,7 +18,7 @@ Milestones 1–4 built:
 - **Solo practice** — pick a skill, 20 generated questions, number pad or
   multiple choice, live score / streak / speed bonus, result screen with stars,
   new-best flag, and a per-skill mastery view.
-- **Curriculum** — 28 skills across grades 3–7 (Khan Academy K-8 scope) plus 5
+- **Curriculum** — 30 skills across grades 3–7 (Khan Academy K-8 scope) plus 5
   strand-level "mixed review" sets, grouped by grade in the picker. Adding one is
   a single object in `src/game/skills.js`.
 - **Star Race** — host gets a join code + QR + `?join=` link, synced 3-2-1-GO,
@@ -30,8 +30,11 @@ Milestones 1–4 built:
 - **Play the Robot 🤖** — race a bot (Warm-up / Sharp / Turbo) when there's no
   second device — no relay, no lobby, straight to the countdown. See
   `src/game/bot.js`.
-- **Playwright** — `practice.spec.js`, `rewards.spec.js`, `bot.spec.js`
-  (green) and `match.spec.js` (needs a relay).
+- **Polish** — a "get ready" warm-up (5 unscored questions) the first time you
+  practise a skill, a synthesized chime + bigger celebration on a 3-star set /
+  new best / race win, and a downloadable share-card image for a race win.
+- **Playwright** — `practice.spec.js`, `rewards.spec.js`, `bot.spec.js`,
+  `polish.spec.js` (green) and `match.spec.js` (needs a relay).
 
 Next: milestone 5 (real backend) — see the roadmap.
 

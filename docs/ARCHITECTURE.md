@@ -81,6 +81,42 @@ built to need **no changes to `<Match>`, `<Hud>`, or `<Countdown>`**:
   wording and offer "Race the robot again" (calls `playBot` again) instead of
   the relay's `sendRematch()`.
 
+## Get-ready warm-up
+
+A `warmup` phase, between `menu` and `practice`, that `<Menu>` routes into
+only for a skill with no `Store.getProgress()` entry yet (never played). 5
+unscored questions from the skill's own generator, reusing `useQuiz` (so it
+mirrors into `session.activity` exactly like `<Practice>` does — no special
+casing for tests or tooling). It deliberately does **not** call
+`startPractice()` from `useQuiz`'s own `onFinish` — that fires synchronously
+inside the last answer's click handler, which raced the very component
+unmount that transition causes. Instead a `useEffect` watches `quiz.finished`
+and hands off after a short `setTimeout`, the same pattern `<Countdown>`
+already uses for its GO! → `beginMatch()` pause.
+
+## Celebration & the share card
+
+- [`celebrate.js`](../src/game/celebrate.js) — `playChime()`, a synthesized
+  Web Audio triad (no audio asset). `<Result>` calls it once when a result is
+  a 3-star set, a new best, or a race win, paired with `.celebrate-pop` in
+  `index.css` (scale + gold glow on the headline/stars, a no-op under
+  `prefers-reduced-motion`).
+- [`shareCard.js`](../src/game/shareCard.js) — `renderShareCard()` draws a
+  result-card PNG on a `<canvas>` (no image asset) and returns a data URL.
+  `<Result>`'s race-win screen offers "Make a share card" → an `<img>` preview
+  and a download link, built on demand rather than on every win.
+
+## Look — starry sky background
+
+The outer page (behind the white `.panel` card) is a CSS-only night sky, same
+"no image assets" rule as the gems and the share card: two tiled
+`radial-gradient` layers on `body::before` draw the stars (a dense dim tile
+and a sparser bright one, `twinkle` opacity animation, off under
+`prefers-reduced-motion`), and a fixed `.ground-gems` strip in `index.html`
+scatters a handful of the real gem-tier colours as small `.gem-stone`-style
+diamonds along the bottom edge, `pointer-events: none` throughout so it never
+intercepts a tap.
+
 ## Star Race (PartyKit)
 
 The server ([`party/server.ts`](../party/server.ts)) is a **dumb relay** — max
@@ -120,7 +156,10 @@ directly, `Store.awardGem()`/`getCollection()` round-tripping, and a full DOM
 playthrough that asserts the gem drop on the result screen and in storage.
 `bot.spec.js` checks `runBot()`'s determinism and level ordering, that
 cancelling it stops `onFinish` firing, and a full DOM playthrough of a bot
-race to a result. `match.spec.js` drives two contexts through the relay
+race to a result. `polish.spec.js` checks the warm-up phase (fires for a
+never-played skill, skips for one with progress, doesn't touch progress
+itself) and that a bot race win offers a downloadable share card.
+`match.spec.js` drives two contexts through the relay
 (shared questions, synced start, winner, rematch) and **skips itself** if no
 relay is reachable — run `npm run party:dev` in another terminal, or point
 `PARTYKIT_HOST` at the deployed relay.

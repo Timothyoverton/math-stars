@@ -3,7 +3,7 @@ import { SKILLS, SKILLS_BY_GRADE, MIXED_SKILLS } from '../game/skills.js'
 import { BOT_LEVELS } from '../game/bot.js'
 import { Store } from '../game/persist/index.js'
 import { session } from '../game/session.js'
-import { startPractice } from '../game/store.js'
+import { startPractice, startWarmup } from '../game/store.js'
 import { hostRace, playBot } from '../game/mp.js'
 
 const AVATARS = ['🦊', '🐼', '🐸', '🦉', '🐙', '🦄', '🐝', '🐬']
@@ -136,7 +136,10 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
       </div>
 
       <div className="stack" style={{ marginTop: 18 }}>
-        <button className="btn big" onClick={() => startPractice(skillId)}>
+        <button
+          className="btn big"
+          onClick={() => (progress[skillId] ? startPractice(skillId) : startWarmup(skillId))}
+        >
           Practise 20 questions
         </button>
         <button className="btn secondary" onClick={() => hostRace(skillId)}>

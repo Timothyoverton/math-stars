@@ -1,7 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
 import { useResult, startPractice, toMenu } from '../game/store.js'
 import * as net from '../game/net.js'
+import { session as profileSession } from '../game/session.js'
 import { leaveRace, playBot } from '../game/mp.js'
 import { TIER_LABEL } from '../game/gems.js'
+import { playChime } from '../game/celebrate.js'
+import { renderShareCard } from '../game/shareCard.js'
 
 function fmtTime(ms) {
   const s = Math.round(ms / 1000)
@@ -9,9 +13,9 @@ function fmtTime(ms) {
   return m ? `${m}m ${s % 60}s` : `${s}s`
 }
 
-function Stars({ n }) {
+function Stars({ n, celebrate }) {
   return (
-    <div className="result-stars">
+    <div className={'result-stars' + (celebrate ? ' celebrate-pop' : '')}>
       {'★'.repeat(n)}
       <span style={{ color: 'var(--line)' }}>{'★'.repeat(3 - n)}</span>
     </div>
@@ -40,8 +44,25 @@ function GemDrop({ gem }) {
   )
 }
 
+// A 3-star set, a new best, or a race win earns a bigger celebration — a
+// synthesized chime plus a bit of extra motion on the headline/stars (see
+// index.css's .celebrate-pop, which no-ops under prefers-reduced-motion).
+function isBigWin(result) {
+  if (!result) return false
+  return result.mode === 'race' ? result.outcome === 'win' : result.stars === 3 || result.newBest
+}
+
 export default function Result() {
   const result = useResult()
+  const celebratedRef = useRef(null)
+
+  useEffect(() => {
+    if (result && result !== celebratedRef.current && isBigWin(result)) {
+      celebratedRef.current = result
+      playChime()
+    }
+  }, [result])
+
   if (!result) return null
 
   return result.mode === 'race' ? <RaceResult r={result} /> : <SoloResult r={result} />
@@ -49,14 +70,17 @@ export default function Result() {
 
 function SoloResult({ r }) {
   const acc = Math.round(r.accuracy * 100)
+  const celebrate = isBigWin(r)
   return (
     <div className="panel center">
-      <h1>{r.correct === r.total ? 'Perfect set! 🎉' : 'Set complete!'}</h1>
+      <h1 className={celebrate ? 'celebrate-pop' : ''}>
+        {r.correct === r.total ? 'Perfect set! 🎉' : 'Set complete!'}
+      </h1>
       <p className="muted" style={{ marginTop: 0 }}>
         {r.skillLabel}
       </p>
 
-      <Stars n={r.stars} />
+      <Stars n={r.stars} celebrate={celebrate} />
       {r.newBest && <span className="badge-best">★ New best score</span>}
       <GemDrop gem={r.gem} />
 
@@ -95,21 +119,62 @@ function SoloResult({ r }) {
   )
 }
 
+function opponentName(r) {
+  if (r.isBot) return net.session.botLevel?.label || 'the robot'
+  return net.session.roster.find((p) => p.id !== net.session.selfId)?.name || 'your friend'
+}
+
+function ShareCard({ r }) {
+  const [url, setUrl] = useState(null)
+
+  function build() {
+    setUrl(
+      renderShareCard({
+        skillLabel: r.skillLabel,
+        youName: profileSession.profile?.name || 'You',
+        youAvatar: profileSession.profile?.avatar || '🦊',
+        youCorrect: r.self.correct,
+        total: r.self.total,
+        youScore: r.self.score,
+        oppName: opponentName(r),
+        oppCorrect: r.opp?.correct ?? 0,
+        oppScore: r.opp?.score ?? 0,
+      }),
+    )
+  }
+
+  if (!url) {
+    return (
+      <button className="btn secondary" onClick={build}>
+        🖼️ Make a share card
+      </button>
+    )
+  }
+  return (
+    <div className="share-card">
+      <img src={url} alt={`${r.skillLabel} Star Race win`} />
+      <a className="btn secondary" href={url} download="math-stars-win.png">
+        Save image
+      </a>
+    </div>
+  )
+}
+
 function RaceResult({ r }) {
   const oppLabel = r.isBot ? 'the robot' : 'your friend'
   const oppCol = r.isBot ? 'ROBOT' : 'FRIEND'
-  const headline =
-    r.outcome === 'win'
-      ? 'You win! 🏆'
-      : r.outcome === 'lose'
-        ? `${r.isBot ? 'The robot wins' : 'Your friend wins'} 🎖️`
-        : r.outcome === 'draw'
-          ? "It's a draw! 🤝"
-          : `${r.isBot ? 'The robot left' : 'Your friend left'} — you take it 🏆`
+  const win = r.outcome === 'win'
+  const headline = win
+    ? 'You win! 🏆'
+    : r.outcome === 'lose'
+      ? `${r.isBot ? 'The robot wins' : 'Your friend wins'} 🎖️`
+      : r.outcome === 'draw'
+        ? "It's a draw! 🤝"
+        : `${r.isBot ? 'The robot left' : 'Your friend left'} — you take it 🏆`
 
   return (
     <div className="panel center">
-      <h1>{headline}</h1>
+      <h1 className={win ? 'celebrate-pop' : ''}>{headline}</h1>
       <p className="muted" style={{ marginTop: 0 }}>
         {r.skillLabel} · Star Race{r.isBot ? ` vs ${oppLabel}` : ''}
       </p>
@@ -136,6 +201,8 @@ function RaceResult({ r }) {
         </div>
       </div>
       <p className="muted">Winner is whoever got more right — faster time breaks a tie.</p>
+
+      {win && <ShareCard r={r} />}
 
       <div className="stack">
         {r.isBot ? (

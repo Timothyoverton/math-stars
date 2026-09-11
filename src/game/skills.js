@@ -117,6 +117,41 @@ export const BASE_SKILLS = [
       return { prompt: `${b * q} ÷ ${b}`, answer: q }
     },
   },
+  {
+    id: 'addsubword',
+    label: 'Word problems: add & subtract',
+    strand: 'Addition & subtraction',
+    grade: 3,
+    generate(rng) {
+      const name = rng.pick(['Sam', 'Mia', 'Leo', 'Ava', 'Noah', 'Zoe', 'Kai', 'Ella'])
+      const thing = rng.pick([
+        'stickers',
+        'marbles',
+        'trading cards',
+        'stamps',
+        'seashells',
+        'baseball cards',
+      ])
+      if (rng.next() < 0.5) {
+        const a = rng.int(20, 600)
+        const b = rng.int(20, 999 - a)
+        const prompt = rng.pick([
+          `${name} has ${a} ${thing}. A friend gives them ${b} more — how many ${thing} does ${name} have now?`,
+          `${name} collected ${a} ${thing} on Saturday and ${b} more on Sunday. How many ${thing} in total?`,
+          `There were ${a} ${thing} in one box and ${b} in another. How many ${thing} altogether?`,
+        ])
+        return { prompt, answer: a + b }
+      }
+      const a = rng.int(100, 999)
+      const b = rng.int(10, a - 1)
+      const prompt = rng.pick([
+        `${name} had ${a} ${thing} and gave away ${b}. How many ${thing} are left?`,
+        `A shop had ${a} ${thing} in stock and sold ${b} of them. How many ${thing} are left?`,
+        `${name} started with ${a} ${thing} but lost ${b}. How many ${thing} remain?`,
+      ])
+      return { prompt, answer: a - b }
+    },
+  },
 
   // --- Grade 4: multi-digit ×, division w/ remainder, factors, place value, fractions, rounding ---
   {
@@ -502,6 +537,44 @@ export const BASE_SKILLS = [
       } while (!Number.isInteger(off) && guard++ < 20)
       const thing = rng.pick(['jacket', 'game', 'bike', 'ticket', 'book', 'scooter'])
       return { prompt: `A $${base} ${thing} is ${pct}% off. Sale price?`, answer: base - off }
+    },
+  },
+  {
+    id: 'percentincrease',
+    label: 'Percent increase, tax & tip',
+    strand: 'Ratios & percentages',
+    grade: 7,
+    generate(rng) {
+      const kind = rng.pick(['increase', 'tax', 'tip', 'whatpercent'])
+
+      if (kind === 'whatpercent') {
+        const pct = rng.pick([10, 20, 25, 40, 50, 60, 75, 80])
+        let base, part
+        let guard = 0
+        do {
+          base = rng.int(2, 20) * 10
+          part = (base * pct) / 100
+        } while (!Number.isInteger(part) && guard++ < 20)
+        return { prompt: `${part} out of ${base} is what percent?`, answer: pct }
+      }
+
+      const pct = rng.pick([5, 10, 15, 20, 25, 50])
+      let base, add
+      let guard = 0
+      do {
+        base = rng.int(2, 20) * 10
+        add = (base * pct) / 100
+      } while (!Number.isInteger(add) && guard++ < 20)
+      const answer = base + add
+
+      if (kind === 'increase') {
+        const thing = rng.pick(['jacket', 'game', 'bike', 'ticket', 'book', 'scooter'])
+        return { prompt: `A $${base} ${thing} goes up ${pct}%. New price?`, answer }
+      }
+      if (kind === 'tax') {
+        return { prompt: `A $${base} bill plus ${pct}% sales tax. Total?`, answer }
+      }
+      return { prompt: `A $${base} meal with a ${pct}% tip. Total?`, answer }
     },
   },
 ]

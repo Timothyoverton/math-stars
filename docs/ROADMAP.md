@@ -1,8 +1,9 @@
 # Math Stars — roadmap & ideas
 
 The brief's milestones 1–4 are built (solo practice, Khan-aligned curriculum,
-Star Race over PartyKit, Playwright), plus the gem collection reward loop and
-Play the Robot below. What's next, roughly in order:
+Star Race over PartyKit, Playwright), plus the gem collection reward loop,
+Play the Robot, the rest of the curriculum, and the smaller polish items
+below. The one thing left:
 
 ## Milestone 5 — real persistence (from the brief)
 
@@ -112,12 +113,10 @@ skill object whose `generate()` picks a member skill per question, so it needed
 no change to `buildQuestionSet`. They show under "Mixed review" in the picker and
 the progress view.
 
-**Still open — good candidates for a generated (text-only) question:**
-
-| Grade | Unit | Skill idea |
-| --- | --- | --- |
-| 3 | Add/subtract within 1000 | word-problem phrasing variants |
-| 7 | Percent | percent *increase*, tax/tip, "what percent of" |
+**Also built** (`addsubword`, `percentincrease`): grade-3 add/subtract word
+problems (varied names/objects/phrasing over the same `add`/`sub` maths) and
+grade-7 percent increase / tax / tip / "what percent of" (one skill, four
+prompt shapes, mirroring the existing discount skill's style).
 
 **Needs a diagram — out of scope for the generator model** (would need an SVG
 question renderer): everything in the geometry, measurement, data & statistics,
@@ -127,8 +126,17 @@ Structural idea worth stealing from Khan: **Unit → skill → mastery**. Math S
 now has per-skill rolling mastery and the strand-level mixed sets; a true "unit
 test" that gates progress could build on those.
 
-## Smaller polish
+## Smaller polish ✅ built
 
-- Sound + a bigger celebration on a new best / 3-star set.
-- "Get ready" warm-up: 5 easy questions before a full set for a cold skill.
-- A shareable result card image for a Star Race win.
+- **Celebration** — `src/game/celebrate.js`'s `playChime()` is a synthesized
+  Web Audio triad (no audio asset), paired with `.celebrate-pop` in
+  `index.css` (a scale + gold glow, no-ops under `prefers-reduced-motion`).
+  `<Result>` fires both once for a 3-star set, a new best, or a race win.
+- **"Get ready" warm-up** — a new `warmup` phase (`store.js`'s
+  `startWarmup()`, `<Warmup>`) reuses `useQuiz` for 5 unscored questions from
+  the same generator, then hands off to `startPractice()` for the real set.
+  `<Menu>` routes here only for a skill with no `Store.getProgress()` entry
+  yet; a "Skip warm-up" button is always available.
+- **Shareable result card** — `src/game/shareCard.js`'s `renderShareCard()`
+  draws a `<canvas>` PNG (no asset) on demand; `<Result>`'s win screen offers
+  "Make a share card" → a downloadable image.

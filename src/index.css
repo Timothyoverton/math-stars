@@ -26,12 +26,162 @@ body,
 }
 
 body {
-  background: radial-gradient(1200px 600px at 20% -10%, #27306a 0%, var(--bg) 55%);
+  position: relative;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, #27306a 0%, transparent 55%),
+    radial-gradient(800px 420px at 90% 100%, rgba(107, 63, 160, 0.3) 0%, transparent 60%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* starry sky — two tiled layers of CSS-drawn dots, no image asset */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(0.8px 0.8px at 172px 27px, rgba(255, 255, 255, 0.4), transparent 100%),
+    radial-gradient(1px 1px at 41px 51px, rgba(255, 255, 255, 0.2), transparent 100%),
+    radial-gradient(0.8px 0.8px at 84px 51px, rgba(255, 255, 255, 0.2), transparent 100%),
+    radial-gradient(0.7px 0.7px at 175px 86px, rgba(255, 255, 255, 0.2), transparent 100%),
+    radial-gradient(0.6px 0.6px at 29px 65px, rgba(255, 255, 255, 0.3), transparent 100%),
+    radial-gradient(0.7px 0.7px at 144px 90px, rgba(255, 255, 255, 0.4), transparent 100%),
+    radial-gradient(0.6px 0.6px at 79px 27px, rgba(255, 255, 255, 0.3), transparent 100%),
+    radial-gradient(0.8px 0.8px at 82px 153px, rgba(255, 255, 255, 0.3), transparent 100%),
+    radial-gradient(0.7px 0.7px at 125px 18px, rgba(255, 255, 255, 0.3), transparent 100%),
+    radial-gradient(0.6px 0.6px at 5px 102px, rgba(255, 255, 255, 0.3), transparent 100%),
+    radial-gradient(1.1px 1.1px at 28px 119px, rgba(255, 255, 255, 0.2), transparent 100%),
+    radial-gradient(1.2px 1.2px at 289px 50px, rgba(255, 255, 255, 0.8), transparent 100%),
+    radial-gradient(1.5px 1.5px at 273px 76px, rgba(255, 255, 255, 0.6), transparent 100%),
+    radial-gradient(1.1px 1.1px at 265px 184px, rgba(255, 255, 255, 0.7), transparent 100%),
+    radial-gradient(1.2px 1.2px at 184px 86px, rgba(255, 255, 255, 0.6), transparent 100%),
+    radial-gradient(1.2px 1.2px at 208px 42px, rgba(255, 255, 255, 0.6), transparent 100%),
+    radial-gradient(1.5px 1.5px at 129px 78px, rgba(255, 255, 255, 0.6), transparent 100%),
+    radial-gradient(1.5px 1.5px at 219px 188px, rgba(255, 255, 255, 0.7), transparent 100%);
+  background-size: 180px 180px, 180px 180px, 180px 180px, 180px 180px, 180px 180px, 180px 180px,
+    180px 180px, 180px 180px, 180px 180px, 180px 180px, 180px 180px, 340px 340px, 340px 340px,
+    340px 340px, 340px 340px, 340px 340px, 340px 340px, 340px 340px;
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+/* gems on the ground — a scatter of small CSS-drawn gemstones along the
+   bottom of the viewport, reusing the same rotated-gradient-diamond shape
+   as the collection's .gem-stone, just tinted per real gem colours */
+.ground-gems {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 90px;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ground-gems::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.22) 100%);
+}
+
+.ground-gem {
+  position: absolute;
+  bottom: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  transform: rotate(45deg);
+  box-shadow:
+    inset -2px -2px 4px rgba(0, 0, 0, 0.22),
+    inset 1px 1px 3px rgba(255, 255, 255, 0.5),
+    0 0 10px 1px var(--gg-glow, transparent);
+  opacity: 0.9;
+}
+
+.ground-gem:nth-child(1) {
+  left: 8%;
+  bottom: 14px;
+  width: 13px;
+  height: 13px;
+  --g1: #c199e8;
+  --g2: #6b3fa0;
+  --gg-glow: rgba(193, 153, 232, 0.55);
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+}
+
+.ground-gem:nth-child(2) {
+  left: 22%;
+  bottom: 6px;
+  width: 19px;
+  height: 19px;
+  --g1: #ffd873;
+  --g2: #d99a1f;
+  --gg-glow: rgba(255, 216, 115, 0.55);
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+}
+
+.ground-gem:nth-child(3) {
+  left: 38%;
+  bottom: 16px;
+  width: 12px;
+  height: 12px;
+  --g1: #8fe3b0;
+  --g2: #2f9e63;
+  --gg-glow: rgba(143, 227, 176, 0.5);
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+}
+
+.ground-gem:nth-child(4) {
+  left: 58%;
+  bottom: 8px;
+  width: 16px;
+  height: 16px;
+  --g1: #6fa3ff;
+  --g2: #1c46b3;
+  --gg-glow: rgba(111, 163, 255, 0.55);
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+}
+
+.ground-gem:nth-child(5) {
+  left: 74%;
+  bottom: 18px;
+  width: 14px;
+  height: 14px;
+  --g1: #ff6f8e;
+  --g2: #b3123a;
+  --gg-glow: rgba(255, 111, 142, 0.5);
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+}
+
+.ground-gem:nth-child(6) {
+  left: 90%;
+  bottom: 5px;
+  width: 18px;
+  height: 18px;
+  --g1: #ffffff;
+  --g2: #a9d6ff;
+  --gg-glow: rgba(255, 255, 255, 0.6);
+  background: linear-gradient(135deg, var(--g1), var(--g2));
 }
 
 #root {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -455,6 +605,44 @@ button {
   font-size: 12px;
 }
 
+/* celebration — a 3-star set, a new best, or a race win */
+.celebrate-pop {
+  animation: celebrate-pop 0.6s ease;
+}
+
+@keyframes celebrate-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+    filter: drop-shadow(0 0 10px var(--gold));
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* share card */
+.share-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.share-card img {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+
+.share-card .btn {
+  width: auto;
+  padding: 10px 20px;
+}
+
 /* gems */
 .gem-stone {
   display: inline-block;
@@ -511,7 +699,9 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gem-drop {
+  .gem-drop,
+  .celebrate-pop,
+  body::before {
     animation: none;
   }
 }

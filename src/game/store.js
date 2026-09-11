@@ -2,8 +2,12 @@ import { useSyncExternalStore } from 'react'
 
 // The one React store: a coarse phase machine, sampled with useSyncExternalStore.
 //
-//   menu -> practice -> result            (solo)
+//   menu -> [warmup ->] practice -> result            (solo)
 //   menu -> lobby -> countdown -> match -> result   (Star Race)
+//
+// `warmup` is optional — <Menu> only routes through it for a skill with no
+// progress yet (see startWarmup). It's 5 unscored questions from the same
+// generator, then it hands straight off to startPractice() for the real set.
 //
 // Per-answer state (current question, score, streak) is NOT here — it lives as
 // ordinary React state inside <Practice> / <Match>. A quiz has no per-frame
@@ -12,7 +16,7 @@ import { useSyncExternalStore } from 'react'
 const listeners = new Set()
 
 let state = {
-  phase: 'menu', // 'menu' | 'practice' | 'lobby' | 'countdown' | 'match' | 'result'
+  phase: 'menu', // 'menu' | 'warmup' | 'practice' | 'lobby' | 'countdown' | 'match' | 'result'
   skillId: null, // skill picked for the current practice / race
   runId: 0, // bump to force a fresh <Practice> / <Match> mount
   multiplayer: false, // is the current countdown/match/result a two-player one
@@ -53,6 +57,16 @@ export function useResult() {
 }
 
 // --- transitions ---
+
+export function startWarmup(skillId) {
+  setState((s) => ({
+    phase: 'warmup',
+    skillId,
+    runId: s.runId + 1,
+    multiplayer: false,
+    result: null,
+  }))
+}
 
 export function startPractice(skillId) {
   setState((s) => ({
