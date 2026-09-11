@@ -167,6 +167,8 @@ export default function Match() {
         className={
           'feedback ' + (quiz.lastAnswer ? (quiz.lastAnswer.correct ? 'good' : 'bad') : '')
         }
+        role="status"
+        aria-live="polite"
       >
         {quiz.lastAnswer ? (
           quiz.lastAnswer.correct ? (

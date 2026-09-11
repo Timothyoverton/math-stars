@@ -132,6 +132,25 @@ button {
   cursor: pointer;
 }
 
+/* Every interactive control in this app is a <button> (.btn, .choice, .key,
+   .skill, .grade-toggle, .link, ...), so one rule covers them all. Browser
+   default focus rings are inconsistent across those different backgrounds;
+   this keeps one visible, on-brand ring for keyboard users everywhere,
+   without showing it on a mouse click (:focus-visible). */
+button:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* The question prompt is given tabIndex={-1} and focused programmatically
+   when a new question loads, so a keyboard/screen-reader user lands
+   somewhere sensible instead of nowhere. */
+.prompt:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 6px;
+  border-radius: 8px;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

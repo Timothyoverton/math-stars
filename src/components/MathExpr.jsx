@@ -11,6 +11,8 @@
 // standards answer but renders small and is fiddly to match to the surrounding
 // type; KaTeX is ~270 KB of JS + fonts for what is here only ever "a/b".
 
+import { forwardRef } from 'react'
+
 const FRACTION = /^(-?\d+)\/(\d+)$/
 
 export function Fraction({ n, d }) {
@@ -22,14 +24,20 @@ export function Fraction({ n, d }) {
   )
 }
 
-export default function MathExpr({ text, className }) {
+// forwardRef so a parent can focus the rendered prompt when a new question
+// loads (a11y: makes the new prompt an announced, programmatic focus target).
+// ...rest passes through things like tabIndex without every call site needing
+// to know this is otherwise a plain span.
+const MathExpr = forwardRef(function MathExpr({ text, className, ...rest }, ref) {
   const tokens = String(text).split(/(\s+)/)
   return (
-    <span className={className}>
+    <span className={className} ref={ref} {...rest}>
       {tokens.map((tok, i) => {
         const m = FRACTION.exec(tok)
         return m ? <Fraction key={i} n={m[1]} d={m[2]} /> : <span key={i}>{tok}</span>
       })}
     </span>
   )
-}
+})
+
+export default MathExpr

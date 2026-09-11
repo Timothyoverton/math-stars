@@ -198,6 +198,27 @@ export const BASE_SKILLS = [
     },
   },
 
+  {
+    id: 'change',
+    label: 'Making change',
+    strand: 'Money',
+    grade: 3,
+    generate(rng) {
+      const cents = rng.int(5, 995)
+      const price = (Math.floor(cents / 5) * 5) / 100
+      const bills = [1, 2, 5, 10, 20, 50]
+      let paid
+      do {
+        paid = rng.pick(bills)
+      } while (paid <= price)
+      const change = Math.round((paid - price) * 100) / 100
+      return {
+        prompt: `Cost: $${price.toFixed(2)}. You pay with a $${paid} bill. Change?`,
+        answer: change,
+      }
+    },
+  },
+
   // --- Grade 4: multi-digit ×, division w/ remainder, factors, place value, fractions, rounding ---
   {
     id: 'mul1',
@@ -326,6 +347,42 @@ export const BASE_SKILLS = [
       const rhs = n2 / d2
       const answer = lhs < rhs ? '<' : lhs > rhs ? '>' : '='
       return { prompt: `${n1}/${d1}  ?  ${n2}/${d2}`, answer, choices: ['<', '=', '>'] }
+    },
+  },
+
+  {
+    id: 'unitconvert',
+    label: 'Converting units',
+    strand: 'Measurement',
+    grade: 4,
+    generate(rng) {
+      const kind = rng.pick(['cm-m', 'm-cm', 'g-kg', 'kg-g', 'min-hr', 'hr-min'])
+      switch (kind) {
+        case 'cm-m': {
+          const cm = rng.int(1, 99) * 10
+          return { prompt: `${cm} cm = ? m`, answer: cm / 100 }
+        }
+        case 'm-cm': {
+          const m = rng.int(1, 200) / 10
+          return { prompt: `${num(m)} m = ? cm`, answer: Math.round(m * 100) }
+        }
+        case 'g-kg': {
+          const g = rng.int(1, 99) * 100
+          return { prompt: `${g} g = ? kg`, answer: g / 1000 }
+        }
+        case 'kg-g': {
+          const kg = rng.int(1, 99) / 10
+          return { prompt: `${num(kg)} kg = ? g`, answer: Math.round(kg * 1000) }
+        }
+        case 'min-hr': {
+          const min = rng.int(1, 24) * 30
+          return { prompt: `${min} min = ? hr`, answer: min / 60 }
+        }
+        default: {
+          const hr = rng.int(1, 24) / 2
+          return { prompt: `${num(hr)} hr = ? min`, answer: Math.round(hr * 60) }
+        }
+      }
     },
   },
 
@@ -505,6 +562,43 @@ export const BASE_SKILLS = [
         prompt: `${per * groups} ${thing} in ${groups} ${unit} — how many ${thing} in 1?`,
         answer: per,
       }
+    },
+  },
+
+  {
+    id: 'stats',
+    label: 'Mean, median, mode & range',
+    strand: 'Data & statistics',
+    grade: 6,
+    generate(rng) {
+      const kind = rng.pick(['mean', 'median', 'mode', 'range'])
+      if (kind === 'mean') {
+        let nums
+        let guard = 0
+        do {
+          nums = Array.from({ length: 5 }, () => rng.int(1, 20))
+        } while (nums.reduce((a, b) => a + b, 0) % 5 !== 0 && guard++ < 40)
+        const mean = nums.reduce((a, b) => a + b, 0) / 5
+        return { prompt: `Mean of ${nums.join(', ')}`, answer: mean }
+      }
+      if (kind === 'median') {
+        const nums = Array.from({ length: 5 }, () => rng.int(1, 20))
+        const median = [...nums].sort((a, b) => a - b)[2]
+        return { prompt: `Median of ${nums.join(', ')}`, answer: median }
+      }
+      if (kind === 'mode') {
+        const mode = rng.int(1, 20)
+        const others = new Set()
+        while (others.size < 3) {
+          const v = rng.int(1, 20)
+          if (v !== mode) others.add(v)
+        }
+        const nums = rng.shuffle([mode, mode, ...others])
+        return { prompt: `Mode of ${nums.join(', ')}`, answer: mode }
+      }
+      const nums = Array.from({ length: 5 }, () => rng.int(1, 20))
+      const range = Math.max(...nums) - Math.min(...nums)
+      return { prompt: `Range of ${nums.join(', ')}`, answer: range }
     },
   },
 
