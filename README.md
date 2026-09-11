@@ -1,5 +1,7 @@
 # Math Stars
 
+**[Play it live →](https://timothyoverton.github.io/math-stars/)**
+
 Browser maths-practice game for 9-year-olds and up. Solo 20-question sets to earn
 stars, plus a head-to-head "Star Race" against a friend over a shared link.
 
@@ -13,12 +15,12 @@ is the how; [`docs/ROADMAP.md`](docs/ROADMAP.md) is what's next.
 
 ## Status
 
-Milestones 1–4 built:
+Milestones 1–4 built, plus:
 
 - **Solo practice** — pick a skill, 20 generated questions, number pad or
   multiple choice, live score / streak / speed bonus, result screen with stars,
   new-best flag, and a per-skill mastery view.
-- **Curriculum** — 30 skills across grades 3–7 (Khan Academy K-8 scope) plus 5
+- **Curriculum** — 34 skills across grades 2–7 (Khan Academy K-8 scope) plus 5
   strand-level "mixed review" sets, grouped by grade in the picker. Adding one is
   a single object in `src/game/skills.js`.
 - **Star Race** — host gets a join code + QR + `?join=` link, synced 3-2-1-GO,
@@ -30,14 +32,25 @@ Milestones 1–4 built:
 - **Play the Robot 🤖** — race a bot (Warm-up / Sharp / Turbo) when there's no
   second device — no relay, no lobby, straight to the countdown. See
   `src/game/bot.js`.
+- **Explore Mode 🗺️** — an avatar-on-a-map solo mode (Reading Eggs-style):
+  each grade tier is a map, each skill a stop (80% new / 20% review from an
+  earlier map), every map ends in a mixed Map Check gating the next map. See
+  `docs/EXPLORE_MODE.md` / `src/game/explore.js`.
+- **Adaptive difficulty + Needs practice** — a weak skill's rolling mastery
+  narrows its question range and surfaces it on the Menu.
+- **Daily Challenge** — a date-seeded 20-question set, identical for every
+  player on a given day, with its own share card.
+- **Accessibility** — full keyboard + screen-reader support (arrow-key/digit
+  navigation, auto-focus, `aria-live` feedback, focus rings).
 - **Polish** — a "get ready" warm-up (5 unscored questions) the first time you
   practise a skill, a synthesized chime + bigger celebration on a 3-star set /
-  new best / race win, a downloadable share-card image for a race win, and an
-  illustrated starry-night background with gems along the ground.
-- **Playwright** — `practice.spec.js`, `rewards.spec.js`, `bot.spec.js`,
-  `polish.spec.js` (green) and `match.spec.js` (needs a relay).
+  new best / race win, a downloadable share-card image, and an illustrated
+  starry-night background with gems along the ground.
+- **Playwright** — 29 tests across `practice`, `rewards`, `bot`, `polish`,
+  `a11y`, `adaptive`, `daily`, `explore`.spec.js (green) and `match.spec.js`
+  (needs a relay).
 
-Next: milestone 5 (real backend) — see the roadmap.
+Next: milestone 5 (real backend) — see [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Commands
 
