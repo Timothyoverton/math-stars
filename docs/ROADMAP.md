@@ -158,3 +158,19 @@ test" that gates progress could build on those.
   (halves, thirds, quarters, etc.) offline and ship them as assets, similar
   to how the starry background is a shipped `.webp` rather than drawn live —
   rather than calling a generation API from the client at runtime.
+
+- **Full K-1 curriculum + fleshed-out syllabus** — Tim (2026-09-11): build
+  the grades out fully, down to Grade 1 (counting, number bonds to 10/20,
+  simple shapes, basic comparison — currently the youngest content is Grade
+  2 "Estimating"). Two motivations: (a) K-1 content on its own for younger
+  players, and (b) a few genuinely easy questions mixed into Grade 3
+  practice as an on-ramp/confidence-builder for kids who are shaky on the
+  Grade 3 skills. Needs real curriculum research first ("we need the
+  syllabus, we need the course fleshed out") — don't invent K-1 scope from
+  guesswork the way the Grade 3-7 set leaned on the Khan Academy K-8
+  scope-and-sequence; look that up properly (Khan's own K-1 units, or
+  another standard reference) before writing generators. Once the skills
+  exist, folding "a few easy ones" into Grade 3 could reuse the same
+  review-mix mechanism Explore Mode's stops use (see
+  [[math-stars-explore-mode]] if that memory exists, or `docs/EXPLORE_MODE.md`)
+  rather than inventing a second mixing system.
