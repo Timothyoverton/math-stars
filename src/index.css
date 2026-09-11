@@ -389,6 +389,7 @@ button {
   text-align: center;
   letter-spacing: 6px;
   margin: 8px 0;
+  color: var(--gold);
 }
 
 .stat-grid {
