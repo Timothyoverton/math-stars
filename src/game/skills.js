@@ -13,6 +13,11 @@
 // canonical value; comparison is in questions.js/isCorrect (numeric, tolerant
 // of "+", and fraction-equivalent so "2/4" matches "1/2").
 //
+// generate can optionally take a second arg, ctx — solo practice passes
+// { mastery } (see the levelFor() helper below); a race never does, so both
+// players still build the same 20 questions from the seed. Ignoring the
+// second arg (every generator except add/sub/mul/div) is the correct default.
+//
 // Text-only arithmetic — geometry, measurement, data and coordinate-plane
 // strands from the Khan sequence need diagrams and are out of scope here.
 
@@ -83,6 +88,20 @@ function signed(n) {
   return n < 0 ? `(${n})` : `${n}`
 }
 
+// Adaptive difficulty for a handful of flagship skills — see the `mastery`
+// comment in store.js and the ctx note in questions.js. ctx is optional and
+// generators that don't read it (everything but add/sub/mul/div below) are
+// unaffected; a race never passes it, so both players still get identical
+// questions from the seed. 0 = easier, 1 = the skill's normal range
+// (unknown/no mastery yet defaults here), 2 = harder.
+function levelFor(ctx) {
+  const m = ctx?.mastery
+  if (m == null) return 1
+  if (m < 0.5) return 0
+  if (m >= 0.9) return 2
+  return 1
+}
+
 // ---- base skills ---------------------------------------------------
 
 export const BASE_SKILLS = [
@@ -123,9 +142,23 @@ export const BASE_SKILLS = [
     label: 'Addition within 1,000',
     strand: 'Addition & subtraction',
     grade: 3,
-    generate(rng) {
-      const a = rng.int(20, 899)
-      const b = rng.int(20, 999 - a)
+    generate(rng, ctx) {
+      // both operands capped at each level — not just a's lower bound — so
+      // "easy" actually caps the sum small, and "hard" keeps both operands
+      // big (899+899 would blow the "within 1,000" label, so the top of the
+      // hard band leaves 999-a room for b, same shape as the default band).
+      const lvl = levelFor(ctx)
+      let a, b
+      if (lvl === 0) {
+        a = rng.int(10, 150)
+        b = rng.int(10, 150)
+      } else if (lvl === 2) {
+        a = rng.int(400, 599)
+        b = rng.int(400, 999 - a)
+      } else {
+        a = rng.int(20, 899)
+        b = rng.int(20, 999 - a)
+      }
       return { prompt: `${a} + ${b}`, answer: a + b }
     },
   },
@@ -134,9 +167,14 @@ export const BASE_SKILLS = [
     label: 'Subtraction within 1,000',
     strand: 'Addition & subtraction',
     grade: 3,
-    generate(rng) {
-      const a = rng.int(100, 999)
-      const b = rng.int(10, a - 1)
+    generate(rng, ctx) {
+      const [aLo, aHi, bLo] = [
+        [20, 200, 10],
+        [100, 999, 10],
+        [500, 999, 300],
+      ][levelFor(ctx)]
+      const a = rng.int(aLo, aHi)
+      const b = rng.int(bLo, a - 1)
       return { prompt: `${a} − ${b}`, answer: a - b }
     },
   },
@@ -145,9 +183,14 @@ export const BASE_SKILLS = [
     label: 'Multiplication facts to 12×12',
     strand: 'Multiplication & division',
     grade: 3,
-    generate(rng) {
-      const a = rng.int(2, 12)
-      const b = rng.int(2, 12)
+    generate(rng, ctx) {
+      const [lo, hi] = [
+        [2, 6],
+        [2, 12],
+        [7, 12],
+      ][levelFor(ctx)]
+      const a = rng.int(lo, hi)
+      const b = rng.int(lo, hi)
       return { prompt: `${a} × ${b}`, answer: a * b }
     },
   },
@@ -156,9 +199,14 @@ export const BASE_SKILLS = [
     label: 'Division facts',
     strand: 'Multiplication & division',
     grade: 3,
-    generate(rng) {
-      const b = rng.int(2, 12)
-      const q = rng.int(2, 12)
+    generate(rng, ctx) {
+      const [lo, hi] = [
+        [2, 6],
+        [2, 12],
+        [7, 12],
+      ][levelFor(ctx)]
+      const b = rng.int(lo, hi)
+      const q = rng.int(lo, hi)
       return { prompt: `${b * q} ÷ ${b}`, answer: q }
     },
   },

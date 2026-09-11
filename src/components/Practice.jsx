@@ -11,9 +11,13 @@ import { getGem } from '../game/gems.js'
 
 export default function Practice() {
   const skillId = getState().skillId
+  const mastery = getState().mastery
   const skill = getSkill(skillId)
   const seed = useMemo(() => randomSeed(), [])
-  const questions = useMemo(() => buildQuestionSet(seed, skillId), [seed, skillId])
+  const questions = useMemo(
+    () => buildQuestionSet(seed, skillId, undefined, { mastery }),
+    [seed, skillId, mastery],
+  )
   const savedRef = useRef(false)
 
   const onFinish = useCallback(

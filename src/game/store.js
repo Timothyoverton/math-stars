@@ -18,6 +18,10 @@ const listeners = new Set()
 let state = {
   phase: 'menu', // 'menu' | 'warmup' | 'practice' | 'lobby' | 'countdown' | 'match' | 'result'
   skillId: null, // skill picked for the current practice / race
+  mastery: null, // rolling mastery (0-1) for skillId going into solo practice, or
+  // null — drives adaptive difficulty for a few flagship skills (see skills.js).
+  // Never set for warmup/match: a race needs both players generating the same
+  // 20 questions, and a never-played skill has no mastery to adapt from.
   runId: 0, // bump to force a fresh <Practice> / <Match> mount
   multiplayer: false, // is the current countdown/match/result a two-player one
   result: null, // set on entering 'result' — see finishActivity / finishMatch
@@ -62,16 +66,18 @@ export function startWarmup(skillId) {
   setState((s) => ({
     phase: 'warmup',
     skillId,
+    mastery: null,
     runId: s.runId + 1,
     multiplayer: false,
     result: null,
   }))
 }
 
-export function startPractice(skillId) {
+export function startPractice(skillId, mastery = null) {
   setState((s) => ({
     phase: 'practice',
     skillId,
+    mastery,
     runId: s.runId + 1,
     multiplayer: false,
     result: null,

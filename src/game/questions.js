@@ -8,7 +8,14 @@ export const QUESTIONS_PER_SET = 20
 // the relay never sees a question or an answer.
 //
 // `seed` is a string in a race (server-sent) or a random one for solo.
-export function buildQuestionSet(seed, skillId, count = QUESTIONS_PER_SET) {
+//
+// `ctx` is optional and is handed to the skill's generate(rng, ctx) as a
+// second argument — every existing generator takes just `rng` and ignores
+// it harmlessly. It's how solo practice threads adaptive difficulty
+// (currently just { mastery }) into the few flagship skills that read it —
+// see skills.js. Never pass ctx for a race: both players must build the
+// same 20 questions from the seed alone, and mastery is per-player.
+export function buildQuestionSet(seed, skillId, count = QUESTIONS_PER_SET, ctx) {
   const skill = getSkill(skillId)
   if (!skill) throw new Error(`unknown skill: ${skillId}`)
   const rng = makeRng(`${seed}:${skillId}`)
@@ -16,7 +23,7 @@ export function buildQuestionSet(seed, skillId, count = QUESTIONS_PER_SET) {
   const seen = new Set()
   let guard = 0
   while (out.length < count && guard++ < count * 20) {
-    const q = skill.generate(rng)
+    const q = skill.generate(rng, ctx)
     // light de-duplication so a 20-set doesn't repeat the same prompt
     if (seen.has(q.prompt)) continue
     seen.add(q.prompt)
@@ -28,7 +35,7 @@ export function buildQuestionSet(seed, skillId, count = QUESTIONS_PER_SET) {
   }
   // if the skill's space is smaller than `count`, allow repeats to fill
   while (out.length < count) {
-    const q = skill.generate(rng)
+    const q = skill.generate(rng, ctx)
     out.push({ prompt: q.prompt, answer: q.answer, choices: q.choices || null })
   }
   return out

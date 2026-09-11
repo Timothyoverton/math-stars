@@ -249,6 +249,13 @@ button:focus-visible {
   background: #f2f5ff;
 }
 
+/* "Needs practice" shelf on the menu — same shape as a normal skill card, a
+   gold left edge ties it to the star/gem theme without introducing a new
+   color. */
+.skill.needs-practice {
+  border-left: 4px solid var(--gold);
+}
+
 .grade-head {
   font-weight: 800;
   font-size: 12px;

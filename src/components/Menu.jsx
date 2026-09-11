@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { SKILLS, SKILLS_BY_GRADE, MIXED_SKILLS } from '../game/skills.js'
+import { SKILLS, SKILLS_BY_ID, SKILLS_BY_GRADE, MIXED_SKILLS } from '../game/skills.js'
 import { BOT_LEVELS } from '../game/bot.js'
 import { Store } from '../game/persist/index.js'
 import { session } from '../game/session.js'
@@ -40,6 +40,24 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
     [],
   )
   const [openGrades, setOpenGrades] = useState(() => new Set(grades.slice(0, 1)))
+
+  // Skills that need practice: the weakest rolling mastery among skills the
+  // player has actually attempted (an unplayed skill isn't "needs practice",
+  // it's just unexplored — no data to rank it by). Capped at 3 so it reads as
+  // a short, actionable shelf rather than a second copy of the picker.
+  const needsPractice = useMemo(() => {
+    return Object.entries(progress)
+      .map(([id, p]) => ({ skill: SKILLS_BY_ID[id], mastery: p.mastery }))
+      .filter((x) => x.skill && x.mastery < 0.95)
+      .sort((a, b) => a.mastery - b.mastery)
+      .slice(0, 3)
+  }, [progress])
+
+  function practiceNow(id, mastery) {
+    primeAudio()
+    setSkillId(id)
+    startPractice(id, mastery)
+  }
 
   function toggleGrade(grade) {
     setOpenGrades((prev) => {
@@ -95,6 +113,24 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
           see collection
         </button>
       </p>
+
+      {needsPractice.length > 0 && (
+        <>
+          <label>Needs practice</label>
+          <div className="skills" style={{ marginBottom: 18 }}>
+            {needsPractice.map(({ skill, mastery }) => (
+              <button
+                key={skill.id}
+                className="skill needs-practice"
+                onClick={() => practiceNow(skill.id, mastery)}
+              >
+                {skill.label}
+                <small>{Math.round(mastery * 100)}% mastery</small>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       <label>Your name</label>
       <input
@@ -172,7 +208,7 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
             // unlocks Web Audio — a useEffect on the result screen later is
             // too late in Safari. See celebrate.js.
             primeAudio()
-            if (progress[skillId]) startPractice(skillId)
+            if (progress[skillId]) startPractice(skillId, progress[skillId].mastery)
             else startWarmup(skillId)
           }}
         >
