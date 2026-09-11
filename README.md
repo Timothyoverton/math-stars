@@ -27,11 +27,13 @@ Milestones 1–4 built:
 - **Gem collection** — finish a set at or above the pass mark and earn a
   gemstone (common → special, 12 kinds), shown on the result screen and kept in
   a collection bag off the menu. See `src/game/gems.js` / `rewards.js`.
-- **Playwright** — `practice.spec.js`, `rewards.spec.js` (green) and
-  `match.spec.js` (needs a relay).
+- **Play the Robot 🤖** — race a bot (Warm-up / Sharp / Turbo) when there's no
+  second device — no relay, no lobby, straight to the countdown. See
+  `src/game/bot.js`.
+- **Playwright** — `practice.spec.js`, `rewards.spec.js`, `bot.spec.js`
+  (green) and `match.spec.js` (needs a relay).
 
-Next: milestone 5 (real backend), and a "Play the Robot 🤖" bot opponent — see
-the roadmap.
+Next: milestone 5 (real backend) — see the roadmap.
 
 ## Commands
 

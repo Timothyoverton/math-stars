@@ -7,6 +7,10 @@
 // lobby/match transitions go through the event emitter into store.js.
 //
 // All scoring is client-side. The server never sees a question or an answer.
+//
+// `session` and `netState` are exported as plain mutable objects and `emit` is
+// exported alongside `on`/`off` so `bot.js` can stand in for a real opponent —
+// see its header comment — without this module knowing bots exist.
 
 import PartySocket from 'partysocket'
 import { PARTYKIT_HOST } from './net-config.js'
@@ -31,6 +35,7 @@ export const session = {
   seed: null,
   roster: [], // [{ id, name, avatar, slot, ready }]
   startAtLocal: null, // Date.now()-domain timestamp of the shared GO
+  botLevel: null, // set by mp.js's playBot() — see bot.js. No socket when this is set.
 }
 
 // ---- events -----------------------------------------------------------
@@ -44,7 +49,7 @@ export function on(event, fn) {
 export function off(event, fn) {
   listeners.get(event)?.delete(fn)
 }
-function emit(event, payload) {
+export function emit(event, payload) {
   listeners.get(event)?.forEach((fn) => {
     try {
       fn(payload)
@@ -106,6 +111,7 @@ export function connect({ roomCode, name, avatar, skillId, isHost }) {
   session.seed = null
   session.roster = []
   session.startAtLocal = null
+  session.botLevel = null
   netState.oppProgress = null
   netState.oppFinish = null
   netState.selfFinish = null
@@ -152,6 +158,7 @@ export function disconnect() {
   session.roomCode = null
   session.roster = []
   session.startAtLocal = null
+  session.botLevel = null
   netState.connected = false
   netState.oppProgress = null
   netState.oppFinish = null
@@ -271,5 +278,5 @@ function stopPinging() {
 }
 
 if (import.meta.env?.DEV && typeof window !== 'undefined') {
-  window.__net = { netState, session, connect, disconnect, on }
+  window.__net = { netState, session, connect, disconnect, on, emit }
 }

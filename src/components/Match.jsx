@@ -6,6 +6,7 @@ import { buildQuestionSet } from '../game/questions.js'
 import { getSkill } from '../game/skills.js'
 import { useQuiz } from '../game/useQuiz.js'
 import * as net from '../game/net.js'
+import { runBot } from '../game/bot.js'
 import { Store } from '../game/persist/index.js'
 import { finishMatch } from '../game/store.js'
 import { leaveRace } from '../game/mp.js'
@@ -67,6 +68,8 @@ export default function Match() {
       opp: opp || null,
       outcome,
       gem,
+      isBot: !!net.session.botLevel,
+      botLevelId: net.session.botLevel?.id,
     })
   }, [skillId, skill])
 
@@ -98,6 +101,27 @@ export default function Match() {
     ]
     return () => offs.forEach((f) => f())
   }, [settle])
+
+  // Racing the robot: drive the bot through the same question set, feeding its
+  // answers into the same oppProgress/oppFinish shape a real opponent's
+  // packets would — see bot.js.
+  useEffect(() => {
+    const level = net.session.botLevel
+    if (!level) return
+    return runBot({
+      seed,
+      skillId,
+      level,
+      questions,
+      onProgress: (p) => {
+        net.netState.oppProgress = p
+      },
+      onFinish: (f) => {
+        net.netState.oppFinish = f
+        net.emit('oppFinish', f)
+      },
+    })
+  }, [seed, skillId, questions])
 
   const quiz = useQuiz({ questions, mode: 'race', seed, skillId, onProgress, onFinish })
 

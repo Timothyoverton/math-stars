@@ -58,6 +58,29 @@ The reward loop on top of stars — collectible, not a second scoring system.
 - Star Race: both players compute their own gem client-side off their own
   `self` result — the relay still never sees a score.
 
+## Play the Robot 🤖
+
+A bot opponent for Star Race, for when there's no second device. Deliberately
+built to need **no changes to `<Match>`, `<Hud>`, or `<Countdown>`**:
+- [`bot.js`](../src/game/bot.js) — pure, dependency-free, seeded from the
+  race's `seed` like every generator. `runBot({ seed, skillId, level,
+  questions, onProgress, onFinish })` simulates the bot answering one question
+  at a time (a think-time drawn from `level.thinkMs`, right/wrong drawn from
+  `level.accuracy`, scored with `scoring.js`) and calls `onProgress`/`onFinish`
+  in exactly the shape `net.js`'s `oppProgress`/`oppFinish` packets already
+  have. `BOT_LEVELS` holds the three difficulties (Warm-up/Sharp/Turbo).
+- `mp.js`'s `playBot(skillId, levelId)` sets up `net.js`'s exported `session`
+  singleton directly (`Object.assign(net.session, {...})`) — no socket, so
+  there's nothing to connect and no lobby to wait in — and jumps straight to
+  `startMatchCountdown()`.
+- `<Match>` starts `runBot()` on mount whenever `net.session.botLevel` is set,
+  writing its packets straight into `net.netState` and firing `net.emit`
+  (exported from `net.js` alongside `on`/`off` for exactly this) — the same
+  event `<Match>`'s own `oppFinish` listener already handles.
+- `<Result>` reads `result.isBot` to swap "your friend" for "the robot" in its
+  wording and offer "Race the robot again" (calls `playBot` again) instead of
+  the relay's `sendRematch()`.
+
 ## Star Race (PartyKit)
 
 The server ([`party/server.ts`](../party/server.ts)) is a **dumb relay** — max
@@ -95,10 +118,12 @@ multiple-choice question has duplicate choices), seed determinism, and
 `sessionStorage` progress. `rewards.spec.js` checks `gemFor()`'s tier logic
 directly, `Store.awardGem()`/`getCollection()` round-tripping, and a full DOM
 playthrough that asserts the gem drop on the result screen and in storage.
-`match.spec.js` drives two contexts through the relay (shared questions, synced
-start, winner, rematch) and **skips itself** if no relay is reachable — run
-`npm run party:dev` in another terminal, or point `PARTYKIT_HOST` at the
-deployed relay.
+`bot.spec.js` checks `runBot()`'s determinism and level ordering, that
+cancelling it stops `onFinish` firing, and a full DOM playthrough of a bot
+race to a result. `match.spec.js` drives two contexts through the relay
+(shared questions, synced start, winner, rematch) and **skips itself** if no
+relay is reachable — run `npm run party:dev` in another terminal, or point
+`PARTYKIT_HOST` at the deployed relay.
 
 ## Dev globals (dev build only)
 

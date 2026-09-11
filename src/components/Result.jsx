@@ -1,6 +1,6 @@
 import { useResult, startPractice, toMenu } from '../game/store.js'
 import * as net from '../game/net.js'
-import { leaveRace } from '../game/mp.js'
+import { leaveRace, playBot } from '../game/mp.js'
 import { TIER_LABEL } from '../game/gems.js'
 
 function fmtTime(ms) {
@@ -96,20 +96,22 @@ function SoloResult({ r }) {
 }
 
 function RaceResult({ r }) {
+  const oppLabel = r.isBot ? 'the robot' : 'your friend'
+  const oppCol = r.isBot ? 'ROBOT' : 'FRIEND'
   const headline =
     r.outcome === 'win'
       ? 'You win! 🏆'
       : r.outcome === 'lose'
-        ? 'Your friend wins 🎖️'
+        ? `${r.isBot ? 'The robot wins' : 'Your friend wins'} 🎖️`
         : r.outcome === 'draw'
           ? "It's a draw! 🤝"
-          : 'Your friend left — you take it 🏆'
+          : `${r.isBot ? 'The robot left' : 'Your friend left'} — you take it 🏆`
 
   return (
     <div className="panel center">
       <h1>{headline}</h1>
       <p className="muted" style={{ marginTop: 0 }}>
-        {r.skillLabel} · Star Race
+        {r.skillLabel} · Star Race{r.isBot ? ` vs ${oppLabel}` : ''}
       </p>
       <GemDrop gem={r.gem} />
 
@@ -126,17 +128,21 @@ function RaceResult({ r }) {
         </div>
         <div className="stat">
           <b>{r.opp ? `${r.opp.correct}/${r.self.total}` : '—'}</b>
-          <span>FRIEND — CORRECT</span>
+          <span>{oppCol} — CORRECT</span>
         </div>
         <div className="stat">
           <b>{r.opp ? `⭐ ${r.opp.score}` : '—'}</b>
-          <span>FRIEND — SCORE</span>
+          <span>{oppCol} — SCORE</span>
         </div>
       </div>
       <p className="muted">Winner is whoever got more right — faster time breaks a tie.</p>
 
       <div className="stack">
-        {net.netState.connected && r.opp ? (
+        {r.isBot ? (
+          <button className="btn big" onClick={() => playBot(r.skillId, r.botLevelId)}>
+            Race the robot again
+          </button>
+        ) : net.netState.connected && r.opp ? (
           <button className="btn big" onClick={() => net.sendRematch()}>
             Rematch
           </button>

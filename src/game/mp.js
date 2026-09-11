@@ -1,11 +1,15 @@
 // Glue between the transport (net.js) and the phase machine (store.js). Kept out
 // of net.js so that stays a pure transport, and out of the components so the
-// lobby / match / result screens only ever read state.
+// lobby / match / result screens only ever read state. Also where "Play the
+// Robot" (bot.js) plugs in — playBot() sets up net.js's session directly and
+// skips the lobby, since a bot needs no connecting and no second player.
 
 import { useEffect } from 'react'
 import * as net from './net.js'
+import { getBotLevel } from './bot.js'
 import { Store } from './persist/index.js'
 import { session } from './session.js'
+import { randomSeed } from './questions.js'
 import { SKILLS } from './skills.js'
 import { enterLobby, startMatchCountdown, toMenu, getState } from './store.js'
 
@@ -44,6 +48,28 @@ export async function joinRace(code) {
   // guest's skillId is a placeholder; the host's wins on the server
   net.connect({ roomCode: code, ...me, skillId: SKILLS[0].id, isHost: false })
   enterLobby()
+}
+
+// Play the Robot 🤖 — no relay, no lobby, no second device. Sets up net.js's
+// session/netState directly (skipping connect()'s socket) and goes straight
+// to the countdown; <Match> drives bot.js's runBot() off net.session.botLevel.
+export async function playBot(skillId, levelId) {
+  const level = getBotLevel(levelId)
+  const me = await selfIdentity()
+  net.disconnect()
+  Object.assign(net.session, {
+    active: true,
+    isHost: true,
+    selfId: 'self',
+    skillId,
+    seed: randomSeed(),
+    roster: [
+      { id: 'self', name: me.name, avatar: me.avatar, slot: 0, ready: true },
+      { id: 'bot', name: level.label, avatar: level.avatar, slot: 1, ready: true },
+    ],
+    botLevel: level,
+  })
+  startMatchCountdown()
 }
 
 export function leaveRace() {

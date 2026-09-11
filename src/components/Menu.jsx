@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { SKILLS, SKILLS_BY_GRADE, MIXED_SKILLS } from '../game/skills.js'
+import { BOT_LEVELS } from '../game/bot.js'
 import { Store } from '../game/persist/index.js'
 import { session } from '../game/session.js'
 import { startPractice } from '../game/store.js'
-import { hostRace } from '../game/mp.js'
+import { hostRace, playBot } from '../game/mp.js'
 
 const AVATARS = ['🦊', '🐼', '🐸', '🦉', '🐙', '🦄', '🐝', '🐬']
 
@@ -141,6 +142,17 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
         <button className="btn secondary" onClick={() => hostRace(skillId)}>
           🏁 Race a friend
         </button>
+      </div>
+
+      <p className="grade-head" style={{ marginTop: 18 }}>
+        Or play the robot 🤖
+      </p>
+      <div className="row">
+        {BOT_LEVELS.map((l) => (
+          <button key={l.id} className="btn secondary" onClick={() => playBot(skillId, l.id)}>
+            {l.avatar} {l.label.replace(' robot', '')}
+          </button>
+        ))}
       </div>
     </div>
   )

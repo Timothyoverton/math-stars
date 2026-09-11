@@ -1,8 +1,8 @@
 # Math Stars — roadmap & ideas
 
 The brief's milestones 1–4 are built (solo practice, Khan-aligned curriculum,
-Star Race over PartyKit, Playwright), plus the gem collection reward loop
-below. What's next, roughly in order:
+Star Race over PartyKit, Playwright), plus the gem collection reward loop and
+Play the Robot below. What's next, roughly in order:
 
 ## Milestone 5 — real persistence (from the brief)
 
@@ -10,18 +10,25 @@ Pick a backend, write `remoteAdapter.js` against the `Store` contract, migrate
 off `sessionStorage`, add a login token. Recommendation stands: **Supabase**
 unless the product stays strictly single-student with no teacher view.
 
-## Play a Friend · Play the Robot 🤖
+## Play the Robot 🤖 ✅ built
 
-The race screen currently only offers "Race a friend". Add a **bot opponent** so
-a solo player can race without a second device:
+A **bot opponent** so a solo player can race without a second device:
 
-- A `botAdapter` that stands in for `net.js` on the opponent side — no socket,
-  same `oppProgress` / `oppFinish` shape.
-- The bot answers on a timer with a per-question think-time drawn from a
-  distribution, and a target accuracy — expose 2–3 difficulty levels
-  ("Warm-up robot", "Sharp robot", "Turbo robot").
-- It builds its questions from the same `seed`, so the HUD's "Q7/20" is honest.
-- Menu becomes: **Practice · Play a Friend · Play the Robot 🤖**.
+- [`bot.js`](../src/game/bot.js)'s `runBot()` is a pure, seeded simulation —
+  same shape as `net.js`'s `oppProgress` / `oppFinish` packets, so `<Match>` /
+  `<Hud>` can't tell a bot from a real opponent. Three difficulty levels
+  ("Warm-up robot", "Sharp robot", "Turbo robot") vary accuracy and
+  per-question think-time.
+- `mp.js`'s `playBot()` sets up `net.js`'s `session` singleton directly (no
+  socket, no lobby — nothing to connect) and goes straight to the countdown.
+  `<Match>` starts `runBot()` on mount when `session.botLevel` is set.
+- The bot answers the same `buildQuestionSet(seed, skillId)` the player faces,
+  so the HUD's "Q7/20" is honest, and its score uses the same `scoring.js`.
+- Menu: **Practise 20 questions · 🏁 Race a friend · 🤖 Warm-up / Sharp /
+  Turbo**. Result screen adapts its wording ("the robot" vs "your friend") and
+  offers "Race the robot again" instead of a relay rematch.
+- Tests: `tests/bot.spec.js` — `runBot()` determinism and level ordering,
+  cancellation, and a full DOM playthrough to a race result.
 
 This also de-risks the multiplayer demo when no relay is deployed.
 
