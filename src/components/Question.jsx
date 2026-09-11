@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Numpad from './Numpad.jsx'
+import MathExpr from './MathExpr.jsx'
 
 // One question with its input. Number pad for typed answers, big buttons for a
 // multiple-choice question. Calls onAnswer(value) exactly once per question;
@@ -56,13 +57,13 @@ export default function Question({ question, onAnswer }) {
 
   return (
     <div>
-      <div className="prompt">{question.prompt}</div>
+      <MathExpr className="prompt" text={question.prompt} />
 
       {question.choices ? (
         <div className="choices">
           {question.choices.map((c) => (
-            <button key={c} className="choice" onClick={() => choose(c)}>
-              {c}
+            <button key={c} className="choice" aria-label={c} onClick={() => choose(c)}>
+              <MathExpr text={c} />
             </button>
           ))}
         </div>

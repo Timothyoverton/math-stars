@@ -54,6 +54,16 @@ test('a wrong answer scores 0 and resets the streak', async ({ page }) => {
   expect(s2.correct).toBe(1)
 })
 
+test('a multiple-choice fraction skill plays through the DOM to a result', async ({ page }) => {
+  await gotoApp(page)
+  await startPractice(page, 'fracadd')
+  await playWholeSet(page)
+  await expect(page.getByText('SCORE', { exact: true })).toBeVisible()
+  const r = await page.evaluate(() => window.__store.getState().result)
+  expect(r.correct).toBe(20)
+  expect(r.stars).toBe(3)
+})
+
 test('every skill generates 20 questions whose own answer marks correct', async ({ page }) => {
   await gotoApp(page)
   const report = await page.evaluate(async () => {

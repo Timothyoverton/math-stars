@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Question from './Question.jsx'
+import MathExpr from './MathExpr.jsx'
 import Hud from './Hud.jsx'
 import { buildQuestionSet } from '../game/questions.js'
 import { getSkill } from '../game/skills.js'
@@ -128,11 +129,17 @@ export default function Match() {
           'feedback ' + (quiz.lastAnswer ? (quiz.lastAnswer.correct ? 'good' : 'bad') : '')
         }
       >
-        {quiz.lastAnswer
-          ? quiz.lastAnswer.correct
-            ? `Correct! +${quiz.lastAnswer.points}`
-            : `Answer: ${quiz.lastAnswer.expected}`
-          : ' '}
+        {quiz.lastAnswer ? (
+          quiz.lastAnswer.correct ? (
+            `Correct! +${quiz.lastAnswer.points}`
+          ) : (
+            <>
+              Answer: <MathExpr text={String(quiz.lastAnswer.expected)} />
+            </>
+          )
+        ) : (
+          ' '
+        )}
       </div>
 
       <Question question={quiz.question} onAnswer={quiz.answer} />

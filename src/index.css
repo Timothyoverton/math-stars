@@ -278,12 +278,39 @@ button {
 }
 
 .prompt {
+  display: block;
   font-size: 44px;
   font-weight: 800;
   text-align: center;
   color: var(--ink);
   padding: 22px 0 8px;
   letter-spacing: 1px;
+}
+
+/* stacked fraction — scales with the surrounding font-size */
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  font-size: 0.66em;
+  line-height: 1;
+  margin: -0.18em 0.14em 0;
+  letter-spacing: 0;
+}
+
+.frac-n {
+  padding: 0 0.35em 0.06em;
+}
+
+.frac-d {
+  padding: 0.06em 0.35em 0;
+  border-top: 0.09em solid currentColor;
+}
+
+.choice .frac {
+  font-size: 0.72em;
 }
 
 .answer-echo {

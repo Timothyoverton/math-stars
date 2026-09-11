@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react'
 import Question from './Question.jsx'
+import MathExpr from './MathExpr.jsx'
 import { buildQuestionSet, randomSeed } from '../game/questions.js'
 import { getSkill } from '../game/skills.js'
 import { useQuiz } from '../game/useQuiz.js'
@@ -71,11 +72,17 @@ export default function Practice() {
           'feedback ' + (quiz.lastAnswer ? (quiz.lastAnswer.correct ? 'good' : 'bad') : '')
         }
       >
-        {quiz.lastAnswer
-          ? quiz.lastAnswer.correct
-            ? `Correct! +${quiz.lastAnswer.points}`
-            : `Answer: ${quiz.lastAnswer.expected}`
-          : ' '}
+        {quiz.lastAnswer ? (
+          quiz.lastAnswer.correct ? (
+            `Correct! +${quiz.lastAnswer.points}`
+          ) : (
+            <>
+              Answer: <MathExpr text={String(quiz.lastAnswer.expected)} />
+            </>
+          )
+        ) : (
+          ' '
+        )}
       </div>
 
       <Question question={quiz.question} onAnswer={quiz.answer} />
