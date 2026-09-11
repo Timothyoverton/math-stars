@@ -1,10 +1,11 @@
-// The curriculum. Adding a skill is exactly one object in this list with a
+// The curriculum. Adding a skill is exactly one object with a
 // generate(rng) -> { prompt, answer, choices? }. No other wiring anywhere.
 //
 //   id       stable key, used in storage and the ?join= link
 //   label    shown in the picker and on the result screen
 //   strand   grouping for the progress view
 //   grade    school grade this is drawn from (Khan Academy K-8 scope/sequence)
+//   mixed    true for a strand-level "unit test" that draws from several skills
 //   generate takes the seeded rng from rng.js so solo and race share a path
 //
 // A generator returning `choices` renders as multiple-choice; otherwise the
@@ -12,8 +13,8 @@
 // canonical value; comparison is in questions.js/isCorrect (numeric, tolerant
 // of "+", and fraction-equivalent so "2/4" matches "1/2").
 //
-// Text-only arithmetic only — geometry, data and coordinate-plane strands from
-// the Khan sequence need diagrams and are out of scope for a generated quiz.
+// Text-only arithmetic — geometry, measurement, data and coordinate-plane
+// strands from the Khan sequence need diagrams and are out of scope here.
 
 // ---- shared helpers ---------------------------------------------------
 
@@ -59,9 +60,18 @@ function fracChoices(rng, n, d) {
   return rng.shuffle([...pool])
 }
 
-// ---- the list -------------------------------------------------------
+// round away float noise; String() already drops a trailing ".0"
+function num(n) {
+  return String(Math.round(n * 100) / 100)
+}
 
-export const SKILLS = [
+function signed(n) {
+  return n < 0 ? `(${n})` : `${n}`
+}
+
+// ---- base skills ---------------------------------------------------
+
+export const BASE_SKILLS = [
   // --- Grade 3: addition, subtraction, times tables ---
   {
     id: 'add',
@@ -108,7 +118,7 @@ export const SKILLS = [
     },
   },
 
-  // --- Grade 4: multi-digit ×, factors, fractions, rounding ---
+  // --- Grade 4: multi-digit ×, division w/ remainder, factors, place value, fractions, rounding ---
   {
     id: 'mul1',
     label: 'Multiply 2–3 digits by 1 digit',
@@ -132,6 +142,62 @@ export const SKILLS = [
     },
   },
   {
+    id: 'divrem',
+    label: 'Divide with remainders',
+    strand: 'Multiplication & division',
+    grade: 4,
+    generate(rng) {
+      const divisor = rng.int(3, 9)
+      const q = rng.int(4, 12)
+      const r = rng.int(1, divisor - 1)
+      const dividend = divisor * q + r
+      const right = `${q} r ${r}`
+      const pool = new Set()
+      pool.add(`${q - 1} r ${r}`)
+      pool.add(`${q + 1} r ${r}`)
+      for (let alt = 1; alt < divisor && pool.size < 6; alt++) {
+        if (alt !== r) pool.add(`${q} r ${alt}`)
+      }
+      pool.delete(right)
+      const wrongs = rng.shuffle([...pool]).slice(0, 3)
+      const choices = rng.shuffle([right, ...wrongs])
+      return { prompt: `${dividend} ÷ ${divisor}`, answer: right, choices }
+    },
+  },
+  {
+    id: 'primes',
+    label: 'Prime or composite?',
+    strand: 'Factors & multiples',
+    grade: 4,
+    generate(rng) {
+      const n = rng.int(4, 97)
+      let prime = n > 1
+      for (let i = 2; i * i <= n; i++) if (n % i === 0) prime = false
+      return {
+        prompt: `Is ${n} prime or composite?`,
+        answer: prime ? 'prime' : 'composite',
+        choices: ['prime', 'composite'],
+      }
+    },
+  },
+  {
+    id: 'placevalue',
+    label: 'Value of a digit',
+    strand: 'Place value',
+    grade: 4,
+    generate(rng) {
+      let n, digits, pos, digit
+      do {
+        n = rng.int(1000, 9999)
+        digits = String(n).split('').map(Number)
+        pos = rng.int(0, 3)
+        digit = digits[pos]
+      } while (digit === 0 || digits.filter((d) => d === digit).length > 1)
+      const place = [1000, 100, 10, 1][pos]
+      return { prompt: `What is the ${digit} worth in ${n}?`, answer: digit * place }
+    },
+  },
+  {
     id: 'round',
     label: 'Rounding whole numbers',
     strand: 'Place value',
@@ -144,22 +210,10 @@ export const SKILLS = [
         prompt: `Round ${n} to the nearest ${to}`,
         answer,
         choices: rng
-          .shuffle([answer, answer + to, answer - to, Math.round(n / to) * to + (answer >= n ? -to : to)])
+          .shuffle([answer, answer + to, answer - to, answer + 2 * to])
           .filter((v, i, a) => a.indexOf(v) === i)
           .map(String),
       }
-    },
-  },
-  {
-    id: 'primes',
-    label: 'Prime or composite?',
-    strand: 'Factors & multiples',
-    grade: 4,
-    generate(rng) {
-      const n = rng.int(4, 97)
-      let prime = n > 1
-      for (let i = 2; i * i <= n; i++) if (n % i === 0) prime = false
-      return { prompt: `Is ${n} prime or composite?`, answer: prime ? 'prime' : 'composite', choices: ['prime', 'composite'] }
     },
   },
   {
@@ -171,7 +225,11 @@ export const SKILLS = [
       const d = rng.pick([3, 4, 5, 6, 8, 10])
       const a = rng.int(1, d - 1)
       const b = rng.int(1, d - 1)
-      return { prompt: `${a}/${d} + ${b}/${d}`, answer: fracStr(a + b, d), choices: fracChoices(rng, a + b, d) }
+      return {
+        prompt: `${a}/${d} + ${b}/${d}`,
+        answer: fracStr(a + b, d),
+        choices: fracChoices(rng, a + b, d),
+      }
     },
   },
   {
@@ -191,7 +249,7 @@ export const SKILLS = [
     },
   },
 
-  // --- Grade 5: decimals, fraction of a quantity, fraction × ---
+  // --- Grade 5: fraction of a quantity, decimals, powers of ten, fraction ×/÷ ---
   {
     id: 'fracqty',
     label: 'Fractions of a quantity',
@@ -199,9 +257,9 @@ export const SKILLS = [
     grade: 5,
     generate(rng) {
       const den = rng.pick([2, 3, 4, 5, 6, 10])
-      const num = rng.int(1, den - 1)
+      const numr = rng.int(1, den - 1)
       const whole = den * rng.int(2, 12)
-      return { prompt: `${num}/${den} of ${whole}`, answer: (whole / den) * num }
+      return { prompt: `${numr}/${den} of ${whole}`, answer: (whole / den) * numr }
     },
   },
   {
@@ -212,10 +270,37 @@ export const SKILLS = [
     generate(rng) {
       const a = rng.int(15, 900) / 10
       const b = rng.int(10, 400) / 10
-      if (rng.next() < 0.5) return { prompt: `${a.toFixed(1)} + ${b.toFixed(1)}`, answer: Math.round((a + b) * 10) / 10 }
+      if (rng.next() < 0.5)
+        return { prompt: `${a.toFixed(1)} + ${b.toFixed(1)}`, answer: Math.round((a + b) * 10) / 10 }
       const hi = Math.max(a, b)
       const lo = Math.min(a, b)
       return { prompt: `${hi.toFixed(1)} − ${lo.toFixed(1)}`, answer: Math.round((hi - lo) * 10) / 10 }
+    },
+  },
+  {
+    id: 'powersoften',
+    label: 'Multiply & divide by 10, 100, 1000',
+    strand: 'Decimals',
+    grade: 5,
+    generate(rng) {
+      const p = rng.pick([10, 100, 1000])
+      if (rng.next() < 0.5) {
+        const x = Math.round((rng.int(2, 999) / rng.pick([1, 1, 10])) * 10) / 10
+        return { prompt: `${num(x)} × ${p}`, answer: Math.round(x * p * 10) / 10 }
+      }
+      const ans = Math.round((rng.int(2, 999) / rng.pick([1, 1, 10])) * 10) / 10
+      return { prompt: `${num(ans * p)} ÷ ${p}`, answer: ans }
+    },
+  },
+  {
+    id: 'muldec',
+    label: 'Multiply decimals',
+    strand: 'Decimals',
+    grade: 5,
+    generate(rng) {
+      const a = rng.int(2, 9) / 10
+      const b = rng.next() < 0.5 ? rng.int(2, 9) / 10 : rng.int(2, 9)
+      return { prompt: `${num(a)} × ${num(b)}`, answer: Math.round(a * b * 100) / 100 }
     },
   },
   {
@@ -235,8 +320,28 @@ export const SKILLS = [
       }
     },
   },
+  {
+    id: 'fracdiv',
+    label: 'Divide fractions',
+    strand: 'Fractions',
+    grade: 5,
+    generate(rng) {
+      let d1, d2, n1, n2
+      do {
+        d1 = rng.int(2, 6)
+        d2 = rng.int(2, 6)
+        n1 = rng.int(1, d1 - 1)
+        n2 = rng.int(1, d2 - 1)
+      } while ((n1 * d2) % (d1 * n2) === 0) // keep the answer a proper fraction, not a whole number
+      return {
+        prompt: `${n1}/${d1} ÷ ${n2}/${d2}`,
+        answer: fracStr(n1 * d2, d1 * n2),
+        choices: fracChoices(rng, n1 * d2, d1 * n2),
+      }
+    },
+  },
 
-  // --- Grade 6: order of operations, exponents, percent, LCM ---
+  // --- Grade 6: order of operations, exponents, percent, LCM, ratios, rates ---
   {
     id: 'ooo',
     label: 'Order of operations',
@@ -288,8 +393,42 @@ export const SKILLS = [
       return { prompt: `LCM of ${a} and ${b}`, answer, choices: intChoices(rng, answer, Math.max(4, answer >> 2)) }
     },
   },
+  {
+    id: 'ratios',
+    label: 'Equivalent ratios',
+    strand: 'Ratios & percentages',
+    grade: 6,
+    generate(rng) {
+      const a = rng.int(2, 6)
+      let b = rng.int(2, 6)
+      while (b === a) b = rng.int(2, 6)
+      const f = rng.int(2, 6)
+      if (rng.next() < 0.5) return { prompt: `${a} : ${b} = ${a * f} : ?`, answer: b * f }
+      return { prompt: `${a * f} : ${b * f} = ${a} : ?`, answer: b }
+    },
+  },
+  {
+    id: 'unitrate',
+    label: 'Unit rate',
+    strand: 'Ratios & percentages',
+    grade: 6,
+    generate(rng) {
+      const per = rng.int(2, 20)
+      const groups = rng.int(2, 9)
+      const [thing, unit] = rng.pick([
+        ['km', 'hours'],
+        ['words', 'minutes'],
+        ['pages', 'days'],
+        ['points', 'games'],
+      ])
+      return {
+        prompt: `${per * groups} ${thing} in ${groups} ${unit} — how many ${thing} in 1?`,
+        answer: per,
+      }
+    },
+  },
 
-  // --- Grade 7: integer arithmetic with negatives ---
+  // --- Grade 7: multiply/divide negatives, proportions, percent change ---
   {
     id: 'negadd',
     label: 'Adding & subtracting negatives',
@@ -300,11 +439,100 @@ export const SKILLS = [
       const b = rng.int(-15, 15)
       const op = rng.pick(['+', '−'])
       const rhs = op === '+' ? b : -b
-      const shown = b < 0 ? `(${b})` : `${b}`
-      return { prompt: `${a} ${op} ${shown}`, answer: a + rhs }
+      return { prompt: `${a} ${op} ${signed(b)}`, answer: a + rhs }
+    },
+  },
+  {
+    id: 'negmuldiv',
+    label: 'Multiplying & dividing negatives',
+    strand: 'Negative numbers',
+    grade: 7,
+    generate(rng) {
+      const neg = (lo, hi) => rng.int(lo, hi) * rng.pick([-1, 1])
+      let a, b, op, answer
+      do {
+        op = rng.pick(['×', '÷'])
+        if (op === '×') {
+          a = neg(2, 9)
+          b = neg(2, 9)
+          answer = a * b
+        } else {
+          b = neg(2, 9)
+          const q = neg(2, 9)
+          a = b * q
+          answer = q
+        }
+      } while (a > 0 && b > 0)
+      return { prompt: `${signed(a)} ${op} ${signed(b)}`, answer }
+    },
+  },
+  {
+    id: 'proportions',
+    label: 'Proportion word problems',
+    strand: 'Ratios & percentages',
+    grade: 7,
+    generate(rng) {
+      const per = rng.int(2, 8)
+      const base = rng.int(2, 6)
+      const scale = rng.int(2, 6)
+      const [a, b] = rng.pick([
+        ['cups of flour', 'cookies'],
+        ['apples', 'baskets'],
+        ['litres of paint', 'walls'],
+        ['teaspoons', 'cups of tea'],
+      ])
+      return {
+        prompt: `${per} ${a} for ${base} ${b}. How many ${a} for ${base * scale} ${b}?`,
+        answer: per * scale,
+      }
+    },
+  },
+  {
+    id: 'percentchange',
+    label: 'Discount (percent off)',
+    strand: 'Ratios & percentages',
+    grade: 7,
+    generate(rng) {
+      const pct = rng.pick([10, 20, 25, 50])
+      let base, off
+      let guard = 0
+      do {
+        base = rng.int(2, 20) * 10
+        off = (base * pct) / 100
+      } while (!Number.isInteger(off) && guard++ < 20)
+      const thing = rng.pick(['jacket', 'game', 'bike', 'ticket', 'book', 'scooter'])
+      return { prompt: `A $${base} ${thing} is ${pct}% off. Sale price?`, answer: base - off }
     },
   },
 ]
+
+// ---- strand-level "unit test" mixed sets -----------------------------
+// One object per strand with several skills — its generate() picks a member
+// skill each question. Fits the existing model: no buildQuestionSet change.
+
+const MIXED_STRANDS = [
+  'Multiplication & division',
+  'Fractions',
+  'Decimals',
+  'Ratios & percentages',
+  'Negative numbers',
+]
+
+export const MIXED_SKILLS = MIXED_STRANDS.map((strand) => {
+  const members = BASE_SKILLS.filter((s) => s.strand === strand)
+  return {
+    id: `mix-${strand.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')}`,
+    label: strand,
+    strand,
+    grade: Math.max(...members.map((s) => s.grade)),
+    mixed: true,
+    generate(rng) {
+      return rng.pick(members).generate(rng)
+    },
+  }
+})
+
+export const SKILLS = [...BASE_SKILLS, ...MIXED_SKILLS]
 
 export const SKILLS_BY_ID = Object.fromEntries(SKILLS.map((s) => [s.id, s]))
 
@@ -312,8 +540,9 @@ export function getSkill(id) {
   return SKILLS_BY_ID[id] || null
 }
 
-// picker groups skills under their grade
-export const SKILLS_BY_GRADE = SKILLS.reduce((acc, s) => {
+// picker groups the single skills under their grade; mixed sets get their own
+// section (see MIXED_SKILLS)
+export const SKILLS_BY_GRADE = BASE_SKILLS.reduce((acc, s) => {
   ;(acc[s.grade] ||= []).push(s)
   return acc
 }, {})

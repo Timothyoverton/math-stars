@@ -86,34 +86,45 @@ itself is proven fun.
 
 ## Curriculum depth (Khan Academy K-8 scope/sequence)
 
-Current skills cover grades 3–7 arithmetic. Notes from
-<https://www.khanacademy.org/math/k-8-grades> on what could be added, and what
-can't:
+Current skills cover grades 3–7 arithmetic — 28 base skills plus 5 strand-level
+mixed-review sets. Notes from <https://www.khanacademy.org/math/k-8-grades> on
+what could be added, and what can't:
 
-**Good candidates for a generated (text-only) question:**
+**Built this round** (`src/game/skills.js`):
+
+| Grade | Unit | Skill | id |
+| --- | --- | --- | --- |
+| 4 | Place value | value of a digit — "the 8 in 6800" | `placevalue` |
+| 4 | Division | divide with remainders → `q r r` (multiple choice) | `divrem` |
+| 5 | Decimal place value | multiply / divide by 10, 100, 1000 | `powersoften` |
+| 5 | Multiply decimals | `0.4 × 0.7` | `muldec` |
+| 5 | Divide fractions | `¾ ÷ ½` (multiple choice, answer kept a proper fraction) | `fracdiv` |
+| 6 | Ratios | equivalent ratios, `4 : 6 = 2 : ?` | `ratios` |
+| 6 | Rates | unit rate — "60 points in 5 games → per 1" | `unitrate` |
+| 7 | Negative numbers | multiply / divide negatives | `negmuldiv` |
+| 7 | Proportions | proportion word problems | `proportions` |
+| 7 | Percent | discount (percent off) word problems | `percentchange` |
+
+Also added: **mixed-review sets** — one per strand (Multiplication & division,
+Fractions, Decimals, Ratios & percentages, Negative numbers). Each is a normal
+skill object whose `generate()` picks a member skill per question, so it needed
+no change to `buildQuestionSet`. They show under "Mixed review" in the picker and
+the progress view.
+
+**Still open — good candidates for a generated (text-only) question:**
 
 | Grade | Unit | Skill idea |
 | --- | --- | --- |
 | 3 | Add/subtract within 1000 | word-problem phrasing variants |
-| 4 | Place value | "value of the digit 7 in 4 <b>7</b> 2 5" |
-| 4 | Division | divide with remainders → answer as `q r r` |
-| 5 | Decimal place value | multiply / divide by powers of ten |
-| 5 | Multiply decimals | `0.4 × 0.7` |
-| 5 | Divide fractions | `¾ ÷ ½` (multiple choice) |
-| 6 | Ratios | equivalent ratios, `4:6 = 2:?` |
-| 6 | Rates | unit rate — "$12 for 4 → per 1" |
-| 6 | Negative numbers | multiply / divide negatives |
-| 7 | Proportions | solve `a/b = c/x` |
-| 7 | Percent | percent increase / discount word problems |
+| 7 | Percent | percent *increase*, tax/tip, "what percent of" |
 
 **Needs a diagram — out of scope for the generator model** (would need an SVG
 question renderer): everything in the geometry, measurement, data & statistics,
 coordinate-plane, and "fraction on a number line / area model" strands.
 
-Structural idea worth stealing from Khan: **Unit → skill → mastery**, with a
-short "unit test" (a mixed set drawing from several skills in a strand). Math
-Stars already has per-skill rolling mastery; a strand-level mixed set is a small
-addition to `buildQuestionSet`.
+Structural idea worth stealing from Khan: **Unit → skill → mastery**. Math Stars
+now has per-skill rolling mastery and the strand-level mixed sets; a true "unit
+test" that gates progress could build on those.
 
 ## Smaller polish
 

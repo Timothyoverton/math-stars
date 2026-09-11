@@ -1,11 +1,26 @@
 import { useEffect, useState } from 'react'
-import { SKILLS, SKILLS_BY_GRADE } from '../game/skills.js'
+import { SKILLS, SKILLS_BY_GRADE, MIXED_SKILLS } from '../game/skills.js'
 import { Store } from '../game/persist/index.js'
 import { session } from '../game/session.js'
 import { startPractice } from '../game/store.js'
 import { hostRace } from '../game/mp.js'
 
 const AVATARS = ['🦊', '🐼', '🐸', '🦉', '🐙', '🦄', '🐝', '🐬']
+
+function SkillButton({ skill, sub, stars, selected, onSelect }) {
+  return (
+    <button
+      className={'skill' + (selected ? ' selected' : '')}
+      onClick={() => onSelect(skill.id)}
+    >
+      {skill.label}
+      <small>
+        {sub}
+        {stars > 0 && <span className="skill-stars"> · {'★'.repeat(stars)}</span>}
+      </small>
+    </button>
+  )
+}
 
 export default function Menu({ onOpenProgress }) {
   const [name, setName] = useState('')
@@ -85,25 +100,33 @@ export default function Menu({ onOpenProgress }) {
           <div key={grade}>
             <p className="grade-head">Grade {grade}</p>
             <div className="skills">
-              {SKILLS_BY_GRADE[grade].map((s) => {
-                const stars = progress[s.id]?.stars || 0
-                return (
-                  <button
-                    key={s.id}
-                    className={'skill' + (s.id === skillId ? ' selected' : '')}
-                    onClick={() => setSkillId(s.id)}
-                  >
-                    {s.label}
-                    <small>
-                      {s.strand}
-                      {stars > 0 && <span className="skill-stars"> · {'★'.repeat(stars)}</span>}
-                    </small>
-                  </button>
-                )
-              })}
+              {SKILLS_BY_GRADE[grade].map((s) => (
+                <SkillButton
+                  key={s.id}
+                  skill={s}
+                  sub={s.strand}
+                  stars={progress[s.id]?.stars || 0}
+                  selected={s.id === skillId}
+                  onSelect={setSkillId}
+                />
+              ))}
             </div>
           </div>
         ))}
+
+      <p className="grade-head">Mixed review</p>
+      <div className="skills">
+        {MIXED_SKILLS.map((s) => (
+          <SkillButton
+            key={s.id}
+            skill={s}
+            sub="a bit of everything"
+            stars={progress[s.id]?.stars || 0}
+            selected={s.id === skillId}
+            onSelect={setSkillId}
+          />
+        ))}
+      </div>
 
       <div className="stack" style={{ marginTop: 18 }}>
         <button className="btn big" onClick={() => startPractice(skillId)}>

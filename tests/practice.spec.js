@@ -75,13 +75,23 @@ test('every skill generates 20 questions whose own answer marks correct', async 
         (q) => !q.prompt || q.answer == null || !isCorrect(String(q.answer), q.answer),
       )
       const choiceBad = set.filter((q) => q.choices && !q.choices.map(String).includes(String(q.answer)))
-      return { id: s.id, count: set.length, bad: bad.length, choiceBad: choiceBad.length }
+      const choiceDup = set.filter(
+        (q) => q.choices && new Set(q.choices.map(String)).size !== q.choices.length,
+      )
+      return {
+        id: s.id,
+        count: set.length,
+        bad: bad.length,
+        choiceBad: choiceBad.length,
+        choiceDup: choiceDup.length,
+      }
     })
   })
   for (const r of report) {
     expect(r.count, r.id).toBe(20)
     expect(r.bad, `${r.id} has answers that don't self-check`).toBe(0)
     expect(r.choiceBad, `${r.id} has a question whose answer isn't among its choices`).toBe(0)
+    expect(r.choiceDup, `${r.id} has a question with duplicate choices`).toBe(0)
   }
 })
 
