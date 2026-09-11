@@ -5,6 +5,7 @@
 import { sessionAdapter } from './sessionAdapter.js'
 import { memoryAdapter } from './memoryAdapter.js'
 import { starsForAccuracy, MASTERY_WINDOW, STAR_THRESHOLDS } from '../scoring.js'
+import { nextFrontier } from '../explore.js'
 
 // Versioned keys. A schema change bumps v1 and migrates or discards cleanly.
 const K = {
@@ -13,10 +14,12 @@ const K = {
   history: 'math-stars:v1:history',
   collection: 'math-stars:v1:collection',
   daily: 'math-stars:v1:daily',
+  explore: 'math-stars:v1:explore',
 }
 
 const HISTORY_MAX = 200
 const DAILY_MAX = 60 // ~2 months of daily-challenge results, oldest dropped first
+const EMPTY_EXPLORE = { frontier: { mapIndex: 0, nodeIndex: 0 }, results: {} }
 
 function pickAdapter() {
   const which = import.meta.env?.VITE_STORE
@@ -146,12 +149,30 @@ export const Store = {
     return daily[dateKey]
   },
 
+  async getExplore() {
+    return (await adapter.read(K.explore)) || EMPTY_EXPLORE
+  },
+
+  // Record one Explore node's result (stop or map-check). Advances the
+  // frontier via explore.js's nextFrontier — a no-op unless (mapIndex,
+  // nodeIndex) actually was the frontier (replaying an earlier node just
+  // updates its result). `passed` only matters for a check node.
+  async recordExploreNode(mapIndex, nodeIndex, key, result, passed) {
+    const state = (await adapter.read(K.explore)) || EMPTY_EXPLORE
+    const results = { ...state.results, [key]: { ...result, completedAt: Date.now() } }
+    const advanced = nextFrontier(state.frontier, mapIndex, nodeIndex, passed)
+    const next = { frontier: advanced || state.frontier, results }
+    await adapter.write(K.explore, next)
+    return next
+  },
+
   async reset() {
     await adapter.remove(K.profile)
     await adapter.remove(K.progress)
     await adapter.remove(K.history)
     await adapter.remove(K.collection)
     await adapter.remove(K.daily)
+    await adapter.remove(K.explore)
   },
 }
 

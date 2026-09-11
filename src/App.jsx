@@ -8,6 +8,8 @@ import Match from './components/Match.jsx'
 import Result from './components/Result.jsx'
 import Progress from './components/Progress.jsx'
 import Collection from './components/Collection.jsx'
+import ExploreMap from './components/ExploreMap.jsx'
+import ExploreStop from './components/ExploreStop.jsx'
 import { usePhase, useRunId } from './game/store.js'
 import { Store } from './game/persist/index.js'
 import { session } from './game/session.js'
@@ -52,6 +54,8 @@ export default function App() {
           {phase === 'countdown' && <Countdown key={runId} />}
           {phase === 'match' && <Match key={runId} />}
           {phase === 'result' && <Result />}
+          {phase === 'explore' && <ExploreMap />}
+          {phase === 'exploreStop' && <ExploreStop key={runId} />}
         </>
       )}
     </div>

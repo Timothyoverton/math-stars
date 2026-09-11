@@ -17,6 +17,7 @@ const listeners = new Set()
 
 let state = {
   phase: 'menu', // 'menu' | 'warmup' | 'practice' | 'lobby' | 'countdown' | 'match' | 'result'
+  // | 'explore' | 'exploreStop'
   skillId: null, // skill picked for the current practice / race
   mastery: null, // rolling mastery (0-1) for skillId going into solo practice, or
   // null — drives adaptive difficulty for a few flagship skills (see skills.js).
@@ -28,6 +29,10 @@ let state = {
   runId: 0, // bump to force a fresh <Practice> / <Match> mount
   multiplayer: false, // is the current countdown/match/result a two-player one
   result: null, // set on entering 'result' — see finishActivity / finishMatch
+  exploreMapIndex: 0, // which map <ExploreMap> is showing
+  exploreNodeIndex: 0, // which node on that map <ExploreStop> is playing
+  exploreJustCompleted: null, // { mapIndex, nodeIndex, passed, gem } — brief
+  // completion banner on returning to 'explore'; cleared on the next node start
 }
 
 function emit() {
@@ -61,6 +66,9 @@ export function useMultiplayer() {
 }
 export function useResult() {
   return useSyncExternalStore(subscribe, () => state.result)
+}
+export function useExploreJustCompleted() {
+  return useSyncExternalStore(subscribe, () => state.exploreJustCompleted)
 }
 
 // --- transitions ---
@@ -128,6 +136,38 @@ export function finishMatch(result) {
 
 export function toMenu() {
   setState({ phase: 'menu', multiplayer: false, result: null })
+}
+
+// --- Explore Mode ---
+// menu -> explore (map view) -> exploreStop (one stop/check) -> explore -> ...
+// See docs/EXPLORE_MODE.md. Deliberately its own small state slice rather than
+// reusing skillId/mastery/daily/result — a stop's completion returns straight
+// to the map, not the generic 'result' screen.
+
+export function startExploreMode() {
+  setState({
+    phase: 'explore',
+    multiplayer: false,
+    result: null,
+    exploreJustCompleted: null,
+  })
+}
+
+export function startExploreNode(mapIndex, nodeIndex) {
+  setState((s) => ({
+    phase: 'exploreStop',
+    exploreMapIndex: mapIndex,
+    exploreNodeIndex: nodeIndex,
+    exploreJustCompleted: null,
+    runId: s.runId + 1,
+  }))
+}
+
+// Called by <ExploreStop> on finishing a node's question set. `completed` is
+// { mapIndex, nodeIndex, passed, gem } for the just-played node's banner on
+// the map view. Returns to 'explore' rather than 'result'.
+export function finishExploreNode(completed) {
+  setState({ phase: 'explore', exploreJustCompleted: completed })
 }
 
 if (import.meta.env?.DEV && typeof window !== 'undefined') {

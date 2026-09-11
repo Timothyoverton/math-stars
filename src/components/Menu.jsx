@@ -3,10 +3,11 @@ import { SKILLS, SKILLS_BY_ID, SKILLS_BY_GRADE, MIXED_SKILLS } from '../game/ski
 import { BOT_LEVELS } from '../game/bot.js'
 import { Store } from '../game/persist/index.js'
 import { session } from '../game/session.js'
-import { startPractice, startWarmup, startDailyChallenge } from '../game/store.js'
+import { startPractice, startWarmup, startDailyChallenge, startExploreMode } from '../game/store.js'
 import { hostRace, playBot } from '../game/mp.js'
 import { primeAudio } from '../game/celebrate.js'
 import { todayKey, dailySkill } from '../game/daily.js'
+import { EXPLORE_MAPS } from '../game/explore.js'
 
 const AVATARS = ['🦊', '🐼', '🐸', '🦉', '🐙', '🦄', '🐝', '🐬']
 
@@ -33,6 +34,7 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
   const [totalStars, setTotalStars] = useState(0)
   const [totalGems, setTotalGems] = useState(0)
   const [dailyDone, setDailyDone] = useState(null)
+  const [exploreFrontier, setExploreFrontier] = useState(null)
 
   const dateKey = useMemo(() => todayKey(), [])
   const todaySkill = useMemo(() => dailySkill(dateKey), [dateKey])
@@ -88,6 +90,7 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
     Store.getStars().then(setTotalStars)
     Store.getGemCount().then(setTotalGems)
     Store.getDailyChallenge(dateKey).then(setDailyDone)
+    Store.getExplore().then((e) => setExploreFrontier(e.frontier))
   }
 
   async function persistProfile(patch) {
@@ -141,6 +144,30 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
           }}
         >
           {dailyDone ? 'Play again' : 'Play'}
+        </button>
+      </div>
+
+      <div className="daily-card">
+        <div>
+          <b>🗺️ Explore Mode</b>
+          <p className="muted" style={{ margin: '2px 0 0' }}>
+            {exploreFrontier
+              ? `Map ${exploreFrontier.mapIndex + 1} of ${EXPLORE_MAPS.length} · Grade ${
+                  EXPLORE_MAPS[exploreFrontier.mapIndex]?.grade
+                }`
+              : 'Dig for gems along the way'}
+          </p>
+        </div>
+        <button
+          className="btn secondary"
+          onClick={() => {
+            primeAudio()
+            startExploreMode()
+          }}
+        >
+          {exploreFrontier && exploreFrontier.mapIndex + exploreFrontier.nodeIndex > 0
+            ? 'Continue'
+            : 'Start'}
         </button>
       </div>
 

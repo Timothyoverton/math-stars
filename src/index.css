@@ -280,6 +280,80 @@ button:focus-visible {
   white-space: nowrap;
 }
 
+/* Explore Mode's path — one node per stop plus a trailing Map Check, a
+   left-hand connecting line ties them into a single path top to bottom
+   (vertical reads better than a horizontal SVG path at phone widths). */
+.explore-path {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0 4px;
+  padding-left: 4px;
+  position: relative;
+}
+
+.explore-path::before {
+  content: '';
+  position: absolute;
+  left: 25px;
+  top: 26px;
+  bottom: 26px;
+  width: 3px;
+  background: var(--line);
+  z-index: 0;
+}
+
+.explore-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--ink);
+  position: relative;
+  z-index: 1;
+}
+
+.explore-node-icon {
+  font-size: 22px;
+  width: 34px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.explore-node-label {
+  flex: 1;
+}
+
+.explore-node-check {
+  color: var(--brand);
+  font-weight: 800;
+}
+
+.explore-node-score {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.explore-node.current {
+  border-color: var(--gold);
+  background: #fffbea;
+}
+
+.explore-node.done {
+  border-color: var(--brand);
+  background: #f2f5ff;
+}
+
+.explore-node.locked {
+  opacity: 0.55;
+}
+
 .grade-head {
   font-weight: 800;
   font-size: 12px;
