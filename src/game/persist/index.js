@@ -12,9 +12,11 @@ const K = {
   progress: 'math-stars:v1:progress',
   history: 'math-stars:v1:history',
   collection: 'math-stars:v1:collection',
+  daily: 'math-stars:v1:daily',
 }
 
 const HISTORY_MAX = 200
+const DAILY_MAX = 60 // ~2 months of daily-challenge results, oldest dropped first
 
 function pickAdapter() {
   const which = import.meta.env?.VITE_STORE
@@ -128,11 +130,28 @@ export const Store = {
     return Object.values(collection).reduce((sum, g) => sum + (g.count || 0), 0)
   },
 
+  async getDailyChallenge(dateKey) {
+    const daily = (await adapter.read(K.daily)) || {}
+    return daily[dateKey] || null
+  },
+
+  // result: { skillId, total, correct, score }. Overwrites any earlier run
+  // recorded for the same day — the badge just needs the latest attempt.
+  async recordDailyChallenge(dateKey, result) {
+    const daily = (await adapter.read(K.daily)) || {}
+    daily[dateKey] = { ...result, completedAt: Date.now() }
+    const keys = Object.keys(daily).sort()
+    while (keys.length > DAILY_MAX) delete daily[keys.shift()]
+    await adapter.write(K.daily, daily)
+    return daily[dateKey]
+  },
+
   async reset() {
     await adapter.remove(K.profile)
     await adapter.remove(K.progress)
     await adapter.remove(K.history)
     await adapter.remove(K.collection)
+    await adapter.remove(K.daily)
   },
 }
 

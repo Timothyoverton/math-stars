@@ -5,7 +5,7 @@ import { session as profileSession } from '../game/session.js'
 import { leaveRace, playBot } from '../game/mp.js'
 import { TIER_LABEL } from '../game/gems.js'
 import { playChime } from '../game/celebrate.js'
-import { renderShareCard } from '../game/shareCard.js'
+import { renderShareCard, renderDailyShareCard } from '../game/shareCard.js'
 
 function fmtTime(ms) {
   const s = Math.round(ms / 1000)
@@ -68,11 +68,51 @@ export default function Result() {
   return result.mode === 'race' ? <RaceResult r={result} /> : <SoloResult r={result} />
 }
 
+function DailyShareCard({ r }) {
+  const [url, setUrl] = useState(null)
+
+  function build() {
+    setUrl(
+      renderDailyShareCard({
+        skillLabel: r.skillLabel,
+        dateLabel: new Date().toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        name: profileSession.profile?.name || 'You',
+        avatar: profileSession.profile?.avatar || '🦊',
+        correct: r.correct,
+        total: r.total,
+        score: r.score,
+        stars: r.stars,
+      }),
+    )
+  }
+
+  if (!url) {
+    return (
+      <button className="btn secondary" onClick={build}>
+        🖼️ Make a share card
+      </button>
+    )
+  }
+  return (
+    <div className="share-card">
+      <img src={url} alt={`${r.skillLabel} Daily Challenge result`} />
+      <a className="btn secondary" href={url} download="math-stars-daily.png">
+        Save image
+      </a>
+    </div>
+  )
+}
+
 function SoloResult({ r }) {
   const acc = Math.round(r.accuracy * 100)
   const celebrate = isBigWin(r)
   return (
     <div className="panel center">
+      {r.daily && <span className="badge-best">🗓️ Daily Challenge complete</span>}
       <h1 className={celebrate ? 'celebrate-pop' : ''}>
         {r.correct === r.total ? 'Perfect set! 🎉' : 'Set complete!'}
       </h1>
@@ -106,6 +146,8 @@ function SoloResult({ r }) {
       </div>
 
       <p className="muted">Mastery on this skill: {Math.round((r.mastery || 0) * 100)}%</p>
+
+      {r.daily && <DailyShareCard r={r} />}
 
       <div className="stack">
         <button className="btn big" onClick={() => startPractice(r.skillId)}>

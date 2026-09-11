@@ -256,6 +256,30 @@ button:focus-visible {
   border-left: 4px solid var(--gold);
 }
 
+/* Today's Challenge — one banded row above the picker, brand-tinted so it
+   reads as the headline action, not just another skill card. */
+.daily-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #f2f5ff;
+  border: 2px solid var(--brand);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 6px 0 18px;
+}
+
+.daily-card b {
+  font-size: 15px;
+}
+
+.daily-card .btn {
+  width: auto;
+  flex: none;
+  white-space: nowrap;
+}
+
 .grade-head {
   font-weight: 800;
   font-size: 12px;

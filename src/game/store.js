@@ -22,6 +22,9 @@ let state = {
   // null — drives adaptive difficulty for a few flagship skills (see skills.js).
   // Never set for warmup/match: a race needs both players generating the same
   // 20 questions, and a never-played skill has no mastery to adapt from.
+  daily: false, // this practice run is today's Daily Challenge — a fixed,
+  // date-seeded set (see game/daily.js), never adaptive, so it means the
+  // same thing for whoever plays it today.
   runId: 0, // bump to force a fresh <Practice> / <Match> mount
   multiplayer: false, // is the current countdown/match/result a two-player one
   result: null, // set on entering 'result' — see finishActivity / finishMatch
@@ -67,6 +70,7 @@ export function startWarmup(skillId) {
     phase: 'warmup',
     skillId,
     mastery: null,
+    daily: false,
     runId: s.runId + 1,
     multiplayer: false,
     result: null,
@@ -78,6 +82,22 @@ export function startPractice(skillId, mastery = null) {
     phase: 'practice',
     skillId,
     mastery,
+    daily: false,
+    runId: s.runId + 1,
+    multiplayer: false,
+    result: null,
+  }))
+}
+
+// Today's Daily Challenge — always the day's fixed skill and seed (see
+// game/daily.js), no adaptive difficulty, so it's the same set for everyone
+// who plays it today.
+export function startDailyChallenge(skillId) {
+  setState((s) => ({
+    phase: 'practice',
+    skillId,
+    mastery: null,
+    daily: true,
     runId: s.runId + 1,
     multiplayer: false,
     result: null,

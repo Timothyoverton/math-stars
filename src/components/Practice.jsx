@@ -3,6 +3,7 @@ import Question from './Question.jsx'
 import MathExpr from './MathExpr.jsx'
 import { buildQuestionSet, randomSeed } from '../game/questions.js'
 import { getSkill } from '../game/skills.js'
+import { todayKey, dailySeed } from '../game/daily.js'
 import { useQuiz, useSkipFlashOnEnter } from '../game/useQuiz.js'
 import { Store } from '../game/persist/index.js'
 import { getState, finishActivity, toMenu } from '../game/store.js'
@@ -12,11 +13,15 @@ import { getGem } from '../game/gems.js'
 export default function Practice() {
   const skillId = getState().skillId
   const mastery = getState().mastery
+  const daily = getState().daily
   const skill = getSkill(skillId)
-  const seed = useMemo(() => randomSeed(), [])
+  const dateKey = useMemo(() => (daily ? todayKey() : null), [daily])
+  // the daily challenge is a fixed, date-seeded set — never adaptive, so it
+  // means the same thing for whoever plays it today (see game/daily.js).
+  const seed = useMemo(() => (daily ? dailySeed(dateKey) : randomSeed()), [daily, dateKey])
   const questions = useMemo(
-    () => buildQuestionSet(seed, skillId, undefined, { mastery }),
-    [seed, skillId, mastery],
+    () => buildQuestionSet(seed, skillId, undefined, daily ? undefined : { mastery }),
+    [seed, skillId, daily, mastery],
   )
   const savedRef = useRef(false)
 
@@ -30,8 +35,17 @@ export default function Practice() {
         correct: r.correct,
         score: r.score,
         timeMs: r.timeMs,
-        mode: 'solo',
+        mode: daily ? 'daily' : 'solo',
       })
+
+      if (daily) {
+        await Store.recordDailyChallenge(dateKey, {
+          skillId: r.skillId,
+          total: r.total,
+          correct: r.correct,
+          score: r.score,
+        })
+      }
 
       const gemId = gemFor({
         stars: rolled.setStars,
@@ -45,6 +59,7 @@ export default function Practice() {
 
       finishActivity({
         ...r,
+        daily,
         stars: rolled.setStars,
         newBest: rolled.newBest,
         best: rolled.progress.best,
@@ -53,7 +68,7 @@ export default function Practice() {
         gem,
       })
     },
-    [skill],
+    [skill, daily, dateKey],
   )
 
   const quiz = useQuiz({ questions, mode: 'solo', seed, skillId, onFinish })
@@ -83,6 +98,7 @@ export default function Practice() {
       </div>
 
       <p className="muted center" style={{ marginTop: 0 }}>
+        {daily && '🗓️ Daily Challenge · '}
         {skill?.label}
       </p>
 

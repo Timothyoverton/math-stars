@@ -3,9 +3,10 @@ import { SKILLS, SKILLS_BY_ID, SKILLS_BY_GRADE, MIXED_SKILLS } from '../game/ski
 import { BOT_LEVELS } from '../game/bot.js'
 import { Store } from '../game/persist/index.js'
 import { session } from '../game/session.js'
-import { startPractice, startWarmup } from '../game/store.js'
+import { startPractice, startWarmup, startDailyChallenge } from '../game/store.js'
 import { hostRace, playBot } from '../game/mp.js'
 import { primeAudio } from '../game/celebrate.js'
+import { todayKey, dailySkill } from '../game/daily.js'
 
 const AVATARS = ['🦊', '🐼', '🐸', '🦉', '🐙', '🦄', '🐝', '🐬']
 
@@ -31,6 +32,10 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
   const [progress, setProgress] = useState({})
   const [totalStars, setTotalStars] = useState(0)
   const [totalGems, setTotalGems] = useState(0)
+  const [dailyDone, setDailyDone] = useState(null)
+
+  const dateKey = useMemo(() => todayKey(), [])
+  const todaySkill = useMemo(() => dailySkill(dateKey), [dateKey])
 
   // grades sorted ascending — the picker used to lay out every one at once,
   // which made for a very long scroll; only the first is open by default,
@@ -82,6 +87,7 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
     Store.getProgress().then(setProgress)
     Store.getStars().then(setTotalStars)
     Store.getGemCount().then(setTotalGems)
+    Store.getDailyChallenge(dateKey).then(setDailyDone)
   }
 
   async function persistProfile(patch) {
@@ -113,6 +119,30 @@ export default function Menu({ onOpenProgress, onOpenCollection }) {
           see collection
         </button>
       </p>
+
+      <div className="daily-card">
+        <div>
+          <b>🗓️ Today's Challenge</b>
+          <p className="muted" style={{ margin: '2px 0 0' }}>
+            {todaySkill.label}
+            {dailyDone && (
+              <>
+                {' '}
+                · ✓ {dailyDone.correct}/{dailyDone.total} · ⭐{dailyDone.score}
+              </>
+            )}
+          </p>
+        </div>
+        <button
+          className="btn secondary"
+          onClick={() => {
+            primeAudio()
+            startDailyChallenge(todaySkill.id)
+          }}
+        >
+          {dailyDone ? 'Play again' : 'Play'}
+        </button>
+      </div>
 
       {needsPractice.length > 0 && (
         <>
